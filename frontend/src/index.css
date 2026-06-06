@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .satyam-container {
+    @apply max-w-[1440px] mx-auto px-6 md:px-12;
+  }
+
+  .btn-quote {
+    @apply bg-[#0f172a] text-white px-8 py-4 text-[15px] font-bold transition-all duration-300 hover:bg-black hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-xl border-2 border-transparent;
+  }
+
+  .btn-satyam-black {
+    @apply bg-black text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-800 hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.4)] active:scale-95 inline-flex items-center justify-center rounded-none border-2 border-black;
+  }
+
+  .btn-satyam-white {
+    @apply bg-white text-black px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] active:scale-95 inline-flex items-center justify-center border-2 border-black rounded-none;
+  }
+
+  .btn-satyam-outline {
+    @apply bg-transparent text-black px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 border-2 border-neutral-200 hover:border-black hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-none;
+  }
+
+  .btn-satyam-glass {
+    @apply bg-white/10 backdrop-blur-md text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 border-2 border-white/30 hover:bg-white/20 hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-none shadow-xl;
+  }
+
+  .btn-primary {
+    @apply bg-black text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-800 hover:-translate-y-1 hover:shadow-2xl active:scale-95 inline-flex items-center justify-center rounded-full;
+  }
+
+  .nav-link {
+    @apply text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-all duration-300 relative;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+
+  .heading-serif {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+.animate-slow-zoom {
+  animation: slowZoom 30s infinite alternate;
+}
+
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #000;
+}
