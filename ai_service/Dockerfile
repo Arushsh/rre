@@ -12,6 +12,10 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Limit compilation threads to 1 to prevent Render from running out of memory (8GB limit)
+ENV CMAKE_BUILD_PARALLEL_LEVEL=1
+ENV DLIB_MAKE_ARGS="-j 1"
+
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir cmake
