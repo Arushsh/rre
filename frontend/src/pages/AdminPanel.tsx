@@ -66,7 +66,7 @@ const AdminPanel = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [newGallery, setNewGallery] = useState({
-    title: '', slug: '', eventDate: new Date().toISOString().split('T')[0], location: '', photographer: 'RRE Team', password: '', coverImage: '', media: [], revenue: 0, isPublic: false
+    title: '', slug: '', eventDate: new Date().toISOString().split('T')[0], location: '', photographer: 'RRE Team', password: '', coverImage: '', media: [] as any[], revenue: 0, isPublic: false
   });
 
   const [services, setServices] = useState<any[]>([]);

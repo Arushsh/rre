@@ -15,7 +15,8 @@ import {
   DownloadCloud,
   ChevronRight,
   LogOut,
-  Mail
+  Mail,
+  Calendar
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config/api';
