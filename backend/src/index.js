@@ -21,9 +21,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/rre_studio')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/rre_studio', {
+  serverSelectionTimeoutMS: 5000
+})
+  .then(() => console.log('MongoDB connected successfully!'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Basic Route
 app.get('/', (req, res) => {
