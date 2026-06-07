@@ -17,7 +17,15 @@ body {
 
 @layer components {
   .satyam-container {
-    @apply max-w-[1440px] mx-auto px-6 md:px-12;
+    @apply max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
   .btn-quote {

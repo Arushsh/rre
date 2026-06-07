@@ -56,7 +56,7 @@ const Videography = () => {
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Cinematic Excellence</span>
               <div className="h-[1px] w-12 bg-white/30" />
             </div>
-            <h1 className="heading-serif text-6xl md:text-9xl mb-8 italic">Films That <br/>Move You.</h1>
+            <h1 className="heading-serif text-5xl md:text-7xl lg:text-9xl mb-8 italic">Films That <br/>Move You.</h1>
             <p className="text-lg md:text-xl text-white/60 font-medium mb-12 max-w-2xl mx-auto leading-relaxed">
               We don't just record video; we craft cinematic experiences that preserve the soul of every moment.
             </p>

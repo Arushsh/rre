@@ -56,7 +56,7 @@ const MusicProduction = () => {
               <div className="h-[1px] w-12 bg-white/30" />
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Entertainment Innovation</span>
             </div>
-            <h1 className="heading-serif text-6xl md:text-8xl mb-8 italic">Crafting <br/>Hit Sounds.</h1>
+            <h1 className="heading-serif text-5xl md:text-7xl lg:text-8xl mb-8 italic">Crafting <br/>Hit Sounds.</h1>
             <p className="text-lg md:text-xl text-white/60 font-medium mb-12 leading-relaxed max-w-xl">
               Your vision, our expertise. We bring world-class production, arrangement, and sound design to help you create music that resonates.
             </p>

@@ -95,7 +95,7 @@ const Navbar = () => {
           </Link>
           
           <div className="flex items-center space-x-6 border-l border-neutral-100 pl-8 ml-4">
-            <a href="#" className="text-neutral-400 hover:text-black transition-all hover:scale-110"><Instagram className="w-4 h-4" /></a>
+            <a href="https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-black transition-all hover:scale-110"><Instagram className="w-4 h-4" /></a>
             <a href="#" className="text-neutral-400 hover:text-black transition-all hover:scale-110"><Facebook className="w-4 h-4" /></a>
           </div>
         </div>

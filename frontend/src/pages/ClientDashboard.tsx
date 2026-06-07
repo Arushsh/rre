@@ -77,8 +77,8 @@ const ClientDashboard = () => {
     <div className="min-h-screen bg-white pt-24 pb-12">
       <div className="container mx-auto px-6">
         {/* Profile Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 border-b border-gray-100 pb-12">
-          <div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8 border-b border-gray-100 pb-12">
+          <div className="w-full md:w-auto">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary mb-4">
               <UserIcon className="w-4 h-4 mr-2" />
               <span className="text-[10px] font-black uppercase tracking-widest">Client Portal</span>

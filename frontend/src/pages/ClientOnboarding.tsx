@@ -84,7 +84,8 @@ const ClientOnboarding = () => {
         await performAiMatch();
         setStep(4);
       } else {
-        alert('Invalid OTP. Please try again.');
+        const errorData = await response.json();
+        alert(errorData.message || 'Invalid OTP. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);

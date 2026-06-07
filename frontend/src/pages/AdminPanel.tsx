@@ -394,28 +394,32 @@ const AdminPanel = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-20">
+    <div className="min-h-screen bg-gray-50 pt-24 sm:pt-28 pb-20">
       <div className="satyam-container">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
-          <div>
-            <h1 className="heading-serif text-5xl mb-3 italic">Control Center</h1>
-            <p className="text-gray-400 font-medium tracking-widest text-[10px] uppercase">RRE Administrative Interface</p>
+        <div className="mb-8 sm:mb-12">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className="heading-serif text-3xl sm:text-5xl mb-1 sm:mb-3 italic">Control Center</h1>
+              <p className="text-gray-400 font-medium tracking-widest text-[10px] uppercase">RRE Administrative Interface</p>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <button onClick={handleLogout} className="p-3 sm:p-4 bg-white rounded-2xl border border-gray-100 text-gray-400 hover:text-red-500 transition-all group">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110" />
+              </button>
+              <button 
+                onClick={() => setIsCreating(!isCreating)} 
+                className="btn-quote flex items-center gap-2 !px-4 !py-2.5 !text-[11px] sm:!px-8 sm:!py-4 sm:!text-[15px]"
+              >
+                {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                <span className="hidden sm:inline">{isCreating ? 'Cancel Creation' : 'Create New Gallery'}</span>
+                <span className="sm:hidden">{isCreating ? 'Cancel' : 'New Gallery'}</span>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={handleLogout} className="p-4 bg-white rounded-2xl border border-gray-100 text-gray-400 hover:text-red-500 transition-all group">
-              <LogOut className="w-5 h-5 group-hover:scale-110" />
-            </button>
-            <button 
-              onClick={() => setIsCreating(!isCreating)} 
-              className="btn-quote flex items-center gap-3"
-            >
-              {isCreating ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-              {isCreating ? 'Cancel Creation' : 'Create New Gallery'}
-            </button>
-          </div>
-          
-          <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+
+          {/* Tabs - scrollable on mobile */}
+          <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-100 overflow-x-auto scrollbar-hide w-full">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
               { id: 'galleries', label: 'Galleries', icon: FolderOpen },
@@ -425,11 +429,12 @@ const AdminPanel = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id ? 'bg-black text-white shadow-lg' : 'text-gray-400 hover:text-black'
                 }`}
               >
-                <tab.icon className="w-4 h-4" /> {tab.label}
+                <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -465,17 +470,17 @@ const AdminPanel = () => {
 
           {!loading && activeTab === 'galleries' && (
             <motion.div key="galleries" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex justify-between items-center mb-12">
-                <h2 className="heading-serif text-4xl">Galleries</h2>
-                <button onClick={() => setIsCreating(!isCreating)} className="btn-quote">
-                  {isCreating ? 'Cancel' : 'Create New Gallery'}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-12 gap-4">
+                <h2 className="heading-serif text-3xl sm:text-4xl">Galleries</h2>
+                <button onClick={() => setIsCreating(!isCreating)} className="btn-quote !py-3 !px-6 !text-[12px]">
+                  {isCreating ? 'Cancel' : 'New Gallery'}
                 </button>
               </div>
 
               {isCreating && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-16">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-2xl relative">
-                    <form onSubmit={handleCreateGallery} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="bg-white p-5 sm:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-2xl relative">
+                    <form onSubmit={handleCreateGallery} className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
                       <div className="space-y-6">
                         <div>
                           <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Event Title</label>
@@ -511,6 +516,29 @@ const AdminPanel = () => {
                             onChange={e => setNewGallery({...newGallery, isPublic: e.target.checked})}
                           />
                           <label htmlFor="isPublic" className="text-[10px] font-black uppercase tracking-widest text-gray-400">Make this Gallery Public (Show in Website Gallery)</label>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Cover Image</label>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  setNewGallery(prev => ({ ...prev, coverImage: event.target?.result as string }));
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="w-full px-6 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" 
+                          />
+                          {newGallery.coverImage && (
+                            <div className="mt-4 relative aspect-video rounded-xl overflow-hidden shadow-sm">
+                              <img src={newGallery.coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Media Upload</label>
@@ -587,63 +615,64 @@ const AdminPanel = () => {
 
           {!loading && activeTab === 'clients' && (
             <motion.div key="clients" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex justify-between items-center mb-12">
-                <h2 className="heading-serif text-4xl">Clients</h2>
-                <button onClick={() => setIsAddingClient(!isAddingClient)} className="btn-quote">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-12 gap-4">
+                <h2 className="heading-serif text-3xl sm:text-4xl">Clients</h2>
+                <button onClick={() => setIsAddingClient(!isAddingClient)} className="btn-quote !py-3 !px-6 !text-[12px]">
                   {isAddingClient ? 'Cancel' : 'Add New Client'}
                 </button>
               </div>
               {isAddingClient && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-12">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl max-w-2xl mx-auto">
-                    <form onSubmit={handleAddClient} className="space-y-6">
-                      <input type="text" placeholder="Full Name" className="w-full px-6 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})} required />
-                      <input type="email" placeholder="Email Address" className="w-full px-6 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.email} onChange={e => setNewClient({...newClient, email: e.target.value})} required />
-                      <input type="password" placeholder="Temp Password" className="w-full px-6 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.password} onChange={e => setNewClient({...newClient, password: e.target.value})} required />
-                      <button type="submit" className="w-full btn-quote py-5">Register Client</button>
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-8 sm:mb-12">
+                  <div className="bg-white p-5 sm:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-xl max-w-2xl mx-auto">
+                    <form onSubmit={handleAddClient} className="space-y-4 sm:space-y-6">
+                      <input type="text" placeholder="Full Name" className="w-full px-5 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})} required />
+                      <input type="email" placeholder="Email Address" className="w-full px-5 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.email} onChange={e => setNewClient({...newClient, email: e.target.value})} required />
+                      <input type="password" placeholder="Temp Password" className="w-full px-5 py-4 bg-gray-50 rounded-xl font-bold border-none focus:ring-2 focus:ring-black/5" value={newClient.password} onChange={e => setNewClient({...newClient, password: e.target.value})} required />
+                      <button type="submit" className="w-full btn-quote py-4 sm:py-5">Register Client</button>
                     </form>
                   </div>
                 </motion.div>
               )}
-              <div className="bg-white rounded-[3rem] overflow-hidden border border-gray-100 shadow-sm">
-                <table className="w-full text-left">
+              {/* Desktop table */}
+              <div className="hidden md:block bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-x-auto scrollbar-hide">
+                <table className="w-full text-left whitespace-nowrap min-w-[700px]">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Client</th>
-                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Contact</th>
-                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Status</th>
-                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Assigned Events</th>
-                      <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Actions</th>
+                      <th className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Client</th>
+                      <th className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Contact</th>
+                      <th className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Status</th>
+                      <th className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Events</th>
+                      <th className="px-6 lg:px-10 py-6 lg:py-8 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {clients.map((client: any) => (
                       <tr key={client._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-10 py-8">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                        <td className="px-6 lg:px-10 py-6 lg:py-8">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
                               {client.selfieUrl ? (
                                 <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                  <UserIcon className="w-6 h-6" />
+                                  <UserIcon className="w-5 h-5" />
                                 </div>
                               )}
                             </div>
                             <div>
-                              <p className="font-black text-dark uppercase tracking-tight">{client.name}</p>
-                              <p className="text-[10px] text-gray-400 font-bold">Client ID: {client._id.slice(-6)}</p>
+                              <p className="font-black text-dark uppercase tracking-tight text-sm">{client.name}</p>
+                              <p className="text-[10px] text-gray-400 font-bold">#{client._id.slice(-6)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-10 py-8">
+                        <td className="px-6 lg:px-10 py-6 lg:py-8">
                           <div className="space-y-1">
                             <p className="text-xs text-gray-600 font-bold flex items-center gap-2"><Mail className="w-3 h-3" /> {client.email}</p>
                             <p className="text-xs text-gray-600 font-bold flex items-center gap-2"><Phone className="w-3 h-3" /> {client.mobile || 'N/A'}</p>
                           </div>
                         </td>
-                        <td className="px-10 py-8">
-                          <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border ${
+                        <td className="px-6 lg:px-10 py-6 lg:py-8">
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${
                             client.isVerified 
                               ? 'bg-emerald-50 text-emerald-500 border-emerald-100' 
                               : 'bg-amber-50 text-amber-500 border-amber-100'
@@ -651,16 +680,16 @@ const AdminPanel = () => {
                             {client.isVerified ? 'Verified' : 'Pending'}
                           </span>
                         </td>
-                        <td className="px-10 py-8">
-                          <div className="flex flex-wrap gap-2">
+                        <td className="px-6 lg:px-10 py-6 lg:py-8">
+                          <div className="flex flex-wrap gap-1.5">
                             {client.myEvents?.map((ev: any) => (
-                              <span key={ev._id} className="px-4 py-1.5 bg-primary/5 text-primary text-[9px] font-black uppercase rounded-full border border-primary/10">{ev.title}</span>
+                              <span key={ev._id} className="px-2 py-1 bg-primary/5 text-primary text-[9px] font-black uppercase rounded-full border border-primary/10">{ev.title}</span>
                             ))}
-                            {client.myEvents?.length === 0 && <span className="text-[10px] font-black text-gray-200 uppercase tracking-widest italic">No events</span>}
+                            {client.myEvents?.length === 0 && <span className="text-[10px] font-black text-gray-200 uppercase tracking-widest italic">None</span>}
                           </div>
                         </td>
-                        <td className="px-10 py-8">
-                           <select onChange={(e) => e.target.value && assignEventToClient(client._id, e.target.value)} className="bg-gray-50 border border-gray-100 text-[10px] font-black uppercase tracking-widest rounded-xl px-5 py-3 focus:ring-0 cursor-pointer">
+                        <td className="px-6 lg:px-10 py-6 lg:py-8">
+                           <select onChange={(e) => e.target.value && assignEventToClient(client._id, e.target.value)} className="bg-gray-50 border border-gray-100 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-0 cursor-pointer">
                              <option value="">Assign Event...</option>
                              {galleries.map((g: any) => (<option key={g._id} value={g._id}>{g.title}</option>))}
                            </select>
@@ -670,22 +699,71 @@ const AdminPanel = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-4">
+                {clients.map((client: any) => (
+                  <div key={client._id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                        {client.selfieUrl ? (
+                          <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <UserIcon className="w-6 h-6" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <p className="font-black text-dark uppercase tracking-tight">{client.name}</p>
+                        <p className="text-[10px] text-gray-400 font-bold">#{client._id.slice(-6)}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border flex-shrink-0 ${
+                        client.isVerified 
+                          ? 'bg-emerald-50 text-emerald-500 border-emerald-100' 
+                          : 'bg-amber-50 text-amber-500 border-amber-100'
+                      }`}>
+                        {client.isVerified ? 'Verified' : 'Pending'}
+                      </span>
+                    </div>
+                    <div className="space-y-1 mb-4 pb-4 border-b border-gray-50">
+                      <p className="text-xs text-gray-600 font-bold flex items-center gap-2"><Mail className="w-3 h-3" /> {client.email}</p>
+                      <p className="text-xs text-gray-600 font-bold flex items-center gap-2"><Phone className="w-3 h-3" /> {client.mobile || 'N/A'}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {client.myEvents?.map((ev: any) => (
+                        <span key={ev._id} className="px-3 py-1 bg-primary/5 text-primary text-[9px] font-black uppercase rounded-full border border-primary/10">{ev.title}</span>
+                      ))}
+                      {client.myEvents?.length === 0 && <span className="text-[10px] font-black text-gray-200 uppercase tracking-widest italic">No events assigned</span>}
+                    </div>
+                    <select onChange={(e) => e.target.value && assignEventToClient(client._id, e.target.value)} className="w-full bg-gray-50 border border-gray-100 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-3 focus:ring-0 cursor-pointer">
+                      <option value="">Assign Event...</option>
+                      {galleries.map((g: any) => (<option key={g._id} value={g._id}>{g.title}</option>))}
+                    </select>
+                  </div>
+                ))}
+                {clients.length === 0 && (
+                  <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-[2rem] bg-white">
+                    <p className="text-gray-300 font-black uppercase tracking-[0.3em] text-xs">No Clients Yet</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
           {!loading && activeTab === 'services' && (
             <motion.div key="services" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex justify-between items-center mb-12">
-                <h2 className="heading-serif text-4xl">Manage Services</h2>
-                <button onClick={() => setIsEditingService(!isEditingService)} className="btn-quote">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-12 gap-4">
+                <h2 className="heading-serif text-3xl sm:text-4xl">Manage Services</h2>
+                <button onClick={() => setIsEditingService(!isEditingService)} className="btn-quote !py-3 !px-6 !text-[12px]">
                   {isEditingService ? 'Cancel' : 'Add New Service'}
                 </button>
               </div>
 
               {isEditingService && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-12">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-xl max-w-4xl mx-auto">
-                    <form onSubmit={handleCreateService} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-8 sm:mb-12">
+                  <div className="bg-white p-5 sm:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-xl max-w-4xl mx-auto">
+                    <form onSubmit={handleCreateService} className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8">
                       <div className="space-y-6">
                         <select 
                           className="w-full px-6 py-4 bg-gray-50 rounded-xl font-bold border-none"
@@ -751,13 +829,13 @@ const AdminPanel = () => {
         {/* Floating Camera View */}
         <AnimatePresence>
           {isCameraOpen && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-10">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-10">
               <button onClick={() => {
                 const stream = videoRef.current?.srcObject as MediaStream;
                 stream?.getTracks().forEach(t => t.stop());
                 setIsCameraOpen(false);
-              }} className="absolute top-10 right-10 text-white hover:text-primary transition-colors"><X className="w-12 h-12" /></button>
-              <div className="relative w-full max-w-3xl aspect-video bg-neutral-900 rounded-[3rem] overflow-hidden shadow-2xl border border-white/10">
+              }} className="absolute top-6 right-6 sm:top-10 sm:right-10 text-white hover:text-primary transition-colors"><X className="w-10 h-10 sm:w-12 sm:h-12" /></button>
+              <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-video bg-neutral-900 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl border border-white/10">
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                 <canvas ref={canvasRef} className="hidden" />
               </div>

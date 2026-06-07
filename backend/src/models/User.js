@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   selfieUrl: { type: String },
   isVerified: { type: Boolean, default: false },
   role: { type: String, enum: ['client', 'admin'], default: 'client' },
+  otp: { type: String },
+  otpExpiry: { type: Date },
   myEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Gallery' }],
   favorites: [{ type: String }], // Array of photo URLs
   createdAt: { type: Date, default: Date.now }

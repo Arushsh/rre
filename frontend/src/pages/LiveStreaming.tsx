@@ -56,7 +56,7 @@ const LiveStreaming = () => {
               <div className="h-[1px] w-12 bg-white/30" />
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Global Broadcast</span>
             </div>
-            <h1 className="heading-serif text-6xl md:text-8xl mb-8 italic">Broadcast <br/>Without Limits.</h1>
+            <h1 className="heading-serif text-5xl md:text-7xl lg:text-8xl mb-8 italic">Broadcast <br/>Without Limits.</h1>
             <p className="text-lg md:text-xl text-white/60 font-medium mb-12 leading-relaxed max-w-xl">
               High-definition, low-latency live streaming solutions for any event. Connect with your audience anywhere in the world.
             </p>

@@ -133,8 +133,8 @@ const GalleryView = () => {
           </Link>
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
             <div>
-              <h1 className="heading-serif text-5xl md:text-8xl italic mb-8 leading-tight">{gallery.title}</h1>
-              <div className="flex flex-wrap gap-8 text-neutral-400 text-[10px] font-black uppercase tracking-[0.2em]">
+              <h1 className="heading-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic mb-8 leading-tight">{gallery.title}</h1>
+              <div className="flex flex-wrap gap-4 md:gap-8 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">
                 <span className="flex items-center gap-3"><MapPin className="w-4 h-4" /> {gallery.location}</span>
                 <span className="flex items-center gap-3"><Calendar className="w-4 h-4" /> {new Date(gallery.eventDate).toLocaleDateString()}</span>
                 <span className="flex items-center gap-3"><User className="w-4 h-4" /> {gallery.photographer}</span>

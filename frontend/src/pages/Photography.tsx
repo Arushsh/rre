@@ -56,7 +56,7 @@ const Photography = () => {
               <div className="h-[1px] w-12 bg-white/30" />
               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Premium Entertainment House</span>
             </div>
-            <h1 className="heading-serif text-6xl md:text-8xl mb-8 italic">Capturing <br/>Pure Emotion.</h1>
+            <h1 className="heading-serif text-5xl md:text-7xl lg:text-8xl mb-8 italic">Capturing <br/>Pure Emotion.</h1>
             <p className="text-lg md:text-xl text-white/70 font-medium mb-12 leading-relaxed max-w-xl">
               From grand weddings to intimate portraits, we blend technical excellence with artistic vision to freeze your most precious moments in time.
             </p>

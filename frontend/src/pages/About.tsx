@@ -1,7 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Award, Target, Heart, Zap, Sparkles, Mic2, Camera, Users, ArrowRight, ShieldCheck, Globe } from 'lucide-react';
+import { Award, Target, Zap, Globe, ShieldCheck, Instagram, Phone, Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const team = [
+  {
+    name: 'Kundan Rajat raj',
+    role: 'CEO & Founder',
+    bio: 'Visionary behind Rajat Raj Entertainment. With a passion for storytelling through visuals and music, Kundan leads the creative direction of every project with unparalleled dedication.',
+    img: '/team/rajatraj.jpeg',
+    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
+  },
+  {
+    name: 'Shubham',
+    role: 'Producer',
+    bio: 'Orchestrating every project with precision. Shubham ensures our productions run smoothly, managing every detail from concept to final delivery.',
+    img: '/team/Shubham_Raj_Gupta.jpeg',
+    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
+  },
+  {
+    name: 'Hatim Fahad',
+    role: 'Editor',
+    bio: 'Crafting the final narrative. Hatim brings stories to life in the editing room, meticulously weaving together footage to create compelling visual experiences.',
+    img: '/team/hatim_fahad.jpeg',
+    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
+  },
+];
 
 const About = () => {
   return (
@@ -49,7 +73,7 @@ const About = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-black text-white rounded-[3rem] flex flex-col items-center justify-center text-center p-8 shadow-2xl hidden md:flex">
+              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-black text-white rounded-[3rem] flex-col items-center justify-center text-center p-8 shadow-2xl hidden md:flex">
                 <p className="text-4xl font-black mb-1">10+</p>
                 <p className="text-[8px] font-black uppercase tracking-widest text-neutral-500">Years of Innovation</p>
               </div>
@@ -76,6 +100,77 @@ const About = () => {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Meet the Team ── */}
+      <section className="py-24 md:py-40 bg-black text-white overflow-hidden">
+        <div className="satyam-container">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16 sm:mb-24"
+          >
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="h-[1px] w-12 bg-white/20" />
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/40">The People</span>
+              <div className="h-[1px] w-12 bg-white/20" />
+            </div>
+            <h2 className="heading-serif text-4xl sm:text-6xl md:text-7xl italic mb-6">The Faces <br className="hidden sm:block"/> Behind RRE.</h2>
+            <p className="text-white/50 font-medium max-w-xl mx-auto text-base sm:text-lg">
+              Every great project begins with passionate people. Meet the team that breathes life into your stories.
+            </p>
+          </motion.div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {team.map((member, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className="group relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm hover:border-white/30 transition-all duration-700"
+              >
+                {/* Photo */}
+                <div className="aspect-[3/4] overflow-hidden">
+                  <img
+                    src={member.img}
+                    alt={member.name}
+                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                      // Fallback if image not yet added
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80';
+                    }}
+                  />
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                </div>
+
+                {/* Info */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                  <span className="inline-block px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest text-white/70 mb-3">
+                    {member.role}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">{member.name}</h3>
+                  <p className="text-white/50 text-xs sm:text-sm font-medium leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
+                    {member.bio}
+                  </p>
+                  <a
+                    href={member.insta}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-4 text-white/40 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <Instagram className="w-3.5 h-3.5" /> Follow on Instagram
+                  </a>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -113,7 +208,51 @@ const About = () => {
         </div>
       </section>
 
-      {/* Team/CTA */}
+      {/* Contact Strip */}
+      <section className="py-16 sm:py-20 bg-white border-t border-neutral-100">
+        <div className="satyam-container">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-6 sm:gap-12 md:gap-20">
+            <a href="tel:+918898134049" className="flex items-center gap-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-neutral-300 mb-0.5">Call Us</p>
+                <p className="font-black text-dark">+91 88981 34049</p>
+              </div>
+            </a>
+            <a href="mailto:rajatrajentertainment@gmail.com" className="flex items-center gap-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-neutral-300 mb-0.5">Email Us</p>
+                <p className="font-black text-dark text-sm">rajatrajentertainment@gmail.com</p>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                <Instagram className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-neutral-300 mb-0.5">Instagram</p>
+                <p className="font-black text-dark">@kundan_rajat_raj</p>
+              </div>
+            </a>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-neutral-300 mb-0.5">Studio Address</p>
+                <p className="font-black text-dark text-sm leading-snug">Near Dildarnagar Railway Station,<br/>Behind Sayar Maa Mandir — 232326</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
       <section className="py-24 md:py-40">
         <div className="satyam-container text-center">
           <div className="max-w-3xl mx-auto">

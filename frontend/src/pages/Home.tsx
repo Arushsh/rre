@@ -30,7 +30,7 @@ const Home = () => {
               <div className="h-[1px] w-8 md:w-12 bg-primary/50" />
             </div>
             
-            <h1 className="heading-serif text-5xl sm:text-7xl md:text-[10rem] font-light text-white mb-12 leading-[1.1] tracking-tight">
+            <h1 className="heading-serif text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-light text-white mb-12 leading-[1.1] tracking-tight">
               Eternal <br className="hidden sm:block" /> <span className="italic font-normal text-primary">Moments</span>
             </h1>
 
@@ -191,7 +191,7 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-24 md:py-40 bg-white">
         <div className="satyam-container text-center">
-          <h2 className="heading-serif text-5xl md:text-[8rem] font-light text-black mb-16 leading-none">
+          <h2 className="heading-serif text-5xl md:text-7xl lg:text-[8rem] font-light text-black mb-16 leading-none">
             Let's create <br/> <span className="italic">the future.</span>
           </h2>
           <Link to="/booking" className="btn-satyam-black !rounded-full !px-16 !py-8 text-sm">
