@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const sendEmail = require('../utils/sendEmail');
-const sendSMS = require('../utils/sendSMS');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Get all clients (for admin)
 router.get('/', async (req, res) => {
   try {
@@ -14,96 +14,54 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create new client or update existing one during onboarding
-router.post('/onboard', async (req, res) => {
-  const { name, email, mobile, selfieUrl, slug } = req.body;
+// Google Sign-In Onboarding
+router.post('/onboard-google', async (req, res) => {
+  const { googleToken, mobile, selfieUrl, slug } = req.body;
+
+  if (!googleToken) {
+    return res.status(400).json({ message: 'Google token is required' });
+  }
+
   try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+
     let user = await User.findOne({ email });
-    
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiryTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     if (user) {
-      user.name = name;
-      user.mobile = mobile;
-      user.selfieUrl = selfieUrl;
-      user.otp = generatedOtp;
-      user.otpExpiry = otpExpiryTime;
+      if (mobile) user.mobile = mobile;
+      if (selfieUrl) user.selfieUrl = selfieUrl;
     } else {
       user = new User({
         name,
         email,
-        mobile,
-        selfieUrl,
-        otp: generatedOtp,
-        otpExpiry: otpExpiryTime,
+        mobile: mobile || '',
+        selfieUrl: selfieUrl || '',
         role: 'client',
-        password: Math.random().toString(36).slice(-8) // Random temp password
+        isVerified: true, // Google accounts are verified
       });
     }
 
-    // Find the gallery by slug and assign it
-    const Gallery = mongoose.model('Gallery');
-    const gallery = await Gallery.findOne({ slug });
-    if (gallery && !user.myEvents.includes(gallery._id)) {
-      user.myEvents.push(gallery._id);
+    // Assign gallery if slug provided
+    if (slug) {
+      const Gallery = mongoose.model('Gallery');
+      const gallery = await Gallery.findOne({ slug });
+      if (gallery && !user.myEvents.includes(gallery._id)) {
+        user.myEvents.push(gallery._id);
+      }
     }
 
     await user.save();
-
-    // Send OTP via Email
-    if (email) {
-      await sendEmail({
-        email: email,
-        subject: 'Your Verification OTP',
-        message: `Your verification code is ${generatedOtp}. It will expire in 10 minutes.`
-      }).catch(err => console.error('Failed to send email:', err));
-    }
     
-    // Send OTP via SMS
-    if (mobile) {
-      await sendSMS({
-        phone: mobile,
-        message: `Your Rajat Raj Entertainment verification code is ${generatedOtp}.`
-      }).catch(err => console.error('Failed to send SMS:', err));
-    }
-
     res.status(200).json({ message: 'User onboarded successfully', user });
   } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Verify OTP
-router.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
-  
-  if (!otp || otp.length !== 6) {
-    return res.status(400).json({ message: 'Invalid OTP format' });
-  }
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (user.otp !== otp) {
-      return res.status(400).json({ message: 'Incorrect OTP. Please try again.' });
-    }
-
-    if (user.otpExpiry < new Date()) {
-      return res.status(400).json({ message: 'OTP has expired. Please register again.' });
-    }
-
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-    await user.save();
-    
-    res.json({ success: true, message: 'Verified successfully' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Google Auth Error:', err);
+    res.status(400).json({ message: 'Authentication failed', error: err.message });
   }
 });
 

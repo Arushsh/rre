@@ -16,9 +16,11 @@ services:
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        sync: false   # Set this manually in Render dashboard (MongoDB Atlas URI)
+        sync: false   # Set this manually in Render dashboard
       - key: NODE_ENV
         value: production
+      - key: GOOGLE_CLIENT_ID
+        sync: false   # Set this manually in Render dashboard
 
   # ─────────────────────────────────────────────
   # 2. Python Flask AI Service

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google';
 import { 
   Camera, 
   User, 
@@ -24,10 +25,8 @@ const ClientOnboarding = () => {
   const [selfie, setSelfie] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     mobile: ''
   });
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
@@ -45,53 +44,36 @@ const ClientOnboarding = () => {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!formData.mobile.trim()) {
+      alert('Please enter your mobile number before continuing.');
+      return;
+    }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/users/onboard`, {
+      const response = await fetch(`${API_URL}/api/users/onboard-google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, selfieUrl: selfie, slug })
+        body: JSON.stringify({ 
+          googleToken: credentialResponse.credential, 
+          mobile: formData.mobile, 
+          selfieUrl: selfie, 
+          slug 
+        })
       });
       if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, name: data.user.name }));
+        await performAiMatch();
         setStep(3);
       } else {
-        alert('Registration failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      // Fallback for demo
-      setStep(3);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const otpValue = otp.join('');
-    try {
-      const response = await fetch(`${API_URL}/api/users/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp: otpValue })
-      });
-      
-      if (response.ok) {
-        // Now call AI matching
-        await performAiMatch();
-        setStep(4);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Invalid OTP. Please try again.');
+        alert('Google Authentication failed. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
       // Fallback for demo
       await performAiMatch();
-      setStep(4);
+      setStep(3);
     } finally {
       setLoading(false);
     }
@@ -136,19 +118,6 @@ const ClientOnboarding = () => {
      }
    };
 
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    
-    // Auto-focus next input
-    if (value && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
-    }
-  };
-
   const handleDownload = (url: string) => {
     const link = document.createElement('a');
     link.href = url;
@@ -182,7 +151,7 @@ const ClientOnboarding = () => {
         {/* Progress Bar */}
         <div className="flex justify-between mb-12 relative">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3].map((s) => (
             <div 
               key={s}
               className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all duration-500 ${
@@ -253,98 +222,43 @@ const ClientOnboarding = () => {
                   <User className="w-10 h-10 text-primary" />
                 </div>
                 <h2 className="heading-serif text-3xl mb-2">Registration</h2>
-                <p className="text-gray-400 font-medium">Please provide your details to continue.</p>
+                <p className="text-gray-400 font-medium">Continue with Google to complete your registration.</p>
               </div>
 
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="relative">
-                  <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
-                  <input 
-                    type="text" 
-                    placeholder="Full Name" 
-                    required
-                    className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                </div>
-                <div className="relative">
-                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
-                  <input 
-                    type="email" 
-                    placeholder="Email Address" 
-                    required
-                    className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
+              <div className="space-y-6">
                 <div className="relative">
                   <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                   <input 
                     type="tel" 
-                    placeholder="Mobile Number" 
+                    placeholder="Mobile Number *" 
                     required
                     className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
                     value={formData.mobile}
                     onChange={(e) => setFormData({...formData, mobile: e.target.value})}
                   />
+                  {!formData.mobile && <p className="text-xs text-red-400 font-semibold mt-2 pl-2">Required before signing in with Google</p>}
                 </div>
                 
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full btn-quote py-5 flex items-center justify-center gap-3"
-                >
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Continue <ArrowRight className="w-5 h-5" /></>}
-                </button>
-              </form>
+                <div className="flex justify-center pt-4">
+                  {loading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  ) : (
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => alert('Google login failed')}
+                      useOneTap
+                      shape="pill"
+                      theme="filled_black"
+                    />
+                  )}
+                </div>
+              </div>
             </motion.div>
           )}
 
           {step === 3 && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white rounded-[3rem] p-10 shadow-premium border border-gray-100 text-center"
-            >
-              <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
-                <ShieldCheck className="w-10 h-10 text-emerald-500" />
-              </div>
-              <h2 className="heading-serif text-3xl mb-4">Verify OTP</h2>
-              <p className="text-gray-400 font-medium mb-10">We've sent a 6-digit code to your mobile and email.</p>
-
-              <form onSubmit={handleOtpSubmit}>
-                <div className="flex justify-between gap-2 mb-10">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      id={`otp-${index}`}
-                      type="text"
-                      maxLength={1}
-                      className="w-12 h-16 text-center text-2xl font-black bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-primary/20"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                    />
-                  ))}
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full btn-quote py-5 flex items-center justify-center gap-3"
-                >
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Verify & Find My Photos'}
-                </button>
-              </form>
-            </motion.div>
-          )}
-
-          {step === 4 && (
-            <motion.div
-              key="step4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-8"
