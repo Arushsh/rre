@@ -16,16 +16,30 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const galleryRoutes = require('./routes/galleryRoutes');
 const userRoutes = require('./routes/userRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 app.use('/api/galleries', galleryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/team', teamRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/rre_studio', {
-  serverSelectionTimeoutMS: 5000
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/rre_studio';
+mongoose.connect(mongoURI, {
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 10000,
 })
   .then(() => console.log('MongoDB connected successfully!'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    console.log('Retrying with local MongoDB fallback...');
+    mongoose.connect('mongodb://localhost:27017/rre_studio')
+      .then(() => console.log('Connected to local MongoDB fallback.'))
+      .catch(localErr => console.error('Local MongoDB also failed:', localErr));
+  });
 
 // Basic Route
 app.get('/', (req, res) => {

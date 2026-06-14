@@ -1,33 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Award, Target, Zap, Globe, ShieldCheck, Instagram, Phone, Mail, MapPin } from 'lucide-react';
+import { Award, Target, Zap, Globe, ShieldCheck, Instagram, Phone, Mail, MapPin, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const team = [
-  {
-    name: 'Kundan Rajat raj',
-    role: 'CEO & Founder',
-    bio: 'Visionary behind Rajat Raj Entertainment. With a passion for storytelling through visuals and music, Kundan leads the creative direction of every project with unparalleled dedication.',
-    img: '/team/rajatraj.jpeg',
-    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
-  },
-  {
-    name: 'Shubham',
-    role: 'Producer',
-    bio: 'Orchestrating every project with precision. Shubham ensures our productions run smoothly, managing every detail from concept to final delivery.',
-    img: '/team/Shubham_Raj_Gupta.jpeg',
-    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
-  },
-  {
-    name: 'Hatim Fahad',
-    role: 'Editor',
-    bio: 'Crafting the final narrative. Hatim brings stories to life in the editing room, meticulously weaving together footage to create compelling visual experiences.',
-    img: '/team/hatim_fahad.jpeg',
-    insta: 'https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==',
-  },
-];
+import { API_URL } from '../config/api';
 
 const About = () => {
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTeam();
+  }, []);
+
+  const fetchTeam = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/team`);
+      if (res.ok) setTeam(await res.json());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
@@ -126,52 +121,60 @@ const About = () => {
           </motion.div>
 
           {/* Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {team.map((member, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12 }}
-                className="group relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm hover:border-white/30 transition-all duration-700"
-              >
-                {/* Photo */}
-                <div className="aspect-[3/4] overflow-hidden">
-                  <img
-                    src={member.img}
-                    alt={member.name}
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                    onError={(e) => {
-                      // Fallback if image not yet added
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80';
-                    }}
-                  />
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                </div>
+          {loading ? (
+            <div className="py-20 text-center">
+              <RefreshCw className="w-10 h-10 animate-spin mx-auto text-white/20" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {team.map((member: any, i: number) => (
+                <motion.div
+                  key={member._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12 }}
+                  className="group relative rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm hover:border-white/30 transition-all duration-700"
+                >
+                  {/* Photo */}
+                  <div className="aspect-[3/4] overflow-hidden">
+                    <img
+                      src={member.img}
+                      alt={member.name}
+                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                      onError={(e) => {
+                        // Fallback if image not yet added
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80';
+                      }}
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                  </div>
 
-                {/* Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <span className="inline-block px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest text-white/70 mb-3">
-                    {member.role}
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">{member.name}</h3>
-                  <p className="text-white/50 text-xs sm:text-sm font-medium leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
-                    {member.bio}
-                  </p>
-                  <a
-                    href={member.insta}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 mt-4 text-white/40 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
-                  >
-                    <Instagram className="w-3.5 h-3.5" /> Follow on Instagram
-                  </a>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  {/* Info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                    <span className="inline-block px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest text-white/70 mb-3">
+                      {member.role}
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">{member.name}</h3>
+                    <p className="text-white/50 text-xs sm:text-sm font-medium leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all duration-500">
+                      {member.bio}
+                    </p>
+                    {member.insta && (
+                      <a
+                        href={member.insta}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 mt-4 text-white/40 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
+                      >
+                        <Instagram className="w-3.5 h-3.5" /> Follow on Instagram
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

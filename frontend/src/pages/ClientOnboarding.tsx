@@ -85,7 +85,8 @@ const ClientOnboarding = () => {
        // 1. Get gallery media
        const galleryRes = await fetch(`${API_URL}/api/galleries/${slug}`);
        const galleryData = await galleryRes.json();
-       const mediaUrls = galleryData.media || [];
+       const mediaItems = galleryData.media || [];
+       const mediaUrls = mediaItems.map((item: any) => typeof item === 'string' ? item : item.url);
  
        // 2. Call AI Search
        const aiRes = await fetch(`${AI_URL}/api/face-search`, {
@@ -118,13 +119,22 @@ const ClientOnboarding = () => {
      }
    };
 
-  const handleDownload = (url: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `RRE-Photo-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `RRE-Match-${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Failed to download image.');
+    }
   };
 
   const handleShare = async (url: string) => {
