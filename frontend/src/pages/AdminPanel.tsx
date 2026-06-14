@@ -115,25 +115,22 @@ const AdminPanel = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const galRes = await fetch(`${API_URL}/api/galleries`);
+      const [galRes, statRes, clientRes, servRes, teamRes, bookRes, payRes] = await Promise.all([
+        fetch(`${API_URL}/api/galleries`),
+        fetch(`${API_URL}/api/galleries/admin/stats`),
+        fetch(`${API_URL}/api/users`),
+        fetch(`${API_URL}/api/services`),
+        fetch(`${API_URL}/api/team`),
+        fetch(`${API_URL}/api/bookings`),
+        fetch(`${API_URL}/api/payments`)
+      ]);
+
       if (galRes.ok) setGalleries(await galRes.json());
-
-      const statRes = await fetch(`${API_URL}/api/galleries/admin/stats`);
       if (statRes.ok) setStats(await statRes.json());
-
-      const clientRes = await fetch(`${API_URL}/api/users`);
       if (clientRes.ok) setClients(await clientRes.json());
-
-      const servRes = await fetch(`${API_URL}/api/services`);
       if (servRes.ok) setServices(await servRes.json());
-
-      const teamRes = await fetch(`${API_URL}/api/team`);
       if (teamRes.ok) setTeam(await teamRes.json());
-
-      const bookRes = await fetch(`${API_URL}/api/bookings`);
       if (bookRes.ok) setBookings(await bookRes.json());
-
-      const payRes = await fetch(`${API_URL}/api/payments`);
       if (payRes.ok) setPayments(await payRes.json());
     } catch (err) {
       console.error('Fetch error:', err);

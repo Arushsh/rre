@@ -64,16 +64,16 @@ const ClientOnboarding = () => {
       if (response.ok) {
         const data = await response.json();
         setFormData(prev => ({ ...prev, name: data.user.name }));
-        await performAiMatch();
         setStep(3);
+        performAiMatch();
       } else {
         alert('Google Authentication failed. Please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
       // Fallback for demo
-      await performAiMatch();
       setStep(3);
+      performAiMatch();
     } finally {
       setLoading(false);
     }
