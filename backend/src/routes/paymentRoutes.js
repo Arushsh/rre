@@ -6,11 +6,14 @@ const Payment = require('../models/Payment');
 const Gallery = require('../models/Gallery');
 const User = require('../models/User');
 
-// Initialize Razorpay instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay instance conditionally
+let razorpay;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+}
 
 // Create an order
 router.post('/create-order', async (req, res) => {

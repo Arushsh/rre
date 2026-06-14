@@ -5,10 +5,14 @@ const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 const Razorpay = require('razorpay');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay conditionally so it doesn't crash on startup if keys are missing
+let razorpay;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+}
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
