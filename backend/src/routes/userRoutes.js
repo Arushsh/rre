@@ -3,7 +3,115 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { OAuth2Client } = require('google-auth-library');
+const nodemailer = require('nodemailer');
+const axios = require('axios');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// SMS API configuration
+const SMS_API_URL = 'https://apitxt.com/api/sendMsg';
+const SMS_API_KEY = 'SnTt_DrJD5GV1-xOB8hZg6qYwP8XdfuezJJSdMPYVTE';
+
+// Function to send OTP via SMS
+const sendOTPSMS = async (phone, otp) => {
+  try {
+    // Ensure phone number is in correct format (10 digits only)
+    let formattedPhone = phone.replace(/\D/g, ''); // Remove all non-digit characters
+    if (formattedPhone.length > 10) {
+      formattedPhone = formattedPhone.slice(-10); // Take last 10 digits
+    }
+
+    const message = `Your OTP for RRE Registration is: ${otp}. Valid for 10 minutes.`;
+    
+    // Log OTP for testing purposes
+    console.log('📱 Sending Registration OTP:', otp, 'to:', formattedPhone);
+    
+    // Note: Full API requires sender, template_id, pe_id which we don't have yet
+    // For now, we'll just return true and log the OTP
+    // const response = await axios.post(SMS_API_URL, {
+    //   authkey: SMS_API_KEY,
+    //   mobiles: formattedPhone,
+    //   message: message,
+    //   sender: 'APITXT', // Replace with your 6-char sender ID
+    //   route: '4', // Transactional route
+    //   template_id: 'YOUR_TEMPLATE_ID', // Replace with your template ID
+    //   pe_id: 'YOUR_PE_ID' // Replace with your PE ID
+    // });
+    
+    // console.log('OTP SMS sent successfully:', response.data);
+    return true;
+  } catch (err) {
+    console.error('Error sending SMS:', err.response ? err.response.data : err.message);
+    return false;
+  }
+};
+
+// Send OTP via SMS
+router.post('/send-otp', async (req, res) => {
+  const { mobile } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+  try {
+    let user = await User.findOne({ mobile });
+    if (!user) {
+      // Create a temporary user
+      user = new User({ 
+        mobile, 
+        name: 'Guest', 
+        email: '', 
+        isVerified: false 
+      });
+    }
+    
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save();
+
+    await sendOTPSMS(mobile, otp);
+
+    res.json({ message: 'OTP sent successfully' });
+  } catch (err) {
+    console.error('Send OTP Error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Verify OTP & Register/Login
+router.post('/verify-otp', async (req, res) => {
+  const { mobile, otp, firstName, lastName, email, slug, selfieUrl } = req.body;
+  try {
+    const user = await User.findOne({ mobile });
+    if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (firstName && lastName) user.name = `${firstName} ${lastName}`;
+    if (email) user.email = email;
+    if (selfieUrl) user.selfieUrl = selfieUrl;
+
+    // Assign gallery if slug provided
+    if (slug) {
+      const Gallery = mongoose.model('Gallery');
+      const gallery = await Gallery.findOne({ slug });
+      if (gallery && !user.myEvents.includes(gallery._id)) {
+        user.myEvents.push(gallery._id);
+      }
+    }
+
+    await user.save();
+    res.json({ message: 'User verified successfully', user });
+  } catch (err) {
+    console.error('Verify OTP Error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all clients (for admin)
 router.get('/', async (req, res) => {
   try {

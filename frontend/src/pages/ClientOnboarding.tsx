@@ -1,7 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleLogin } from '@react-oauth/google';
 import { 
   Camera, 
   User, 
@@ -24,14 +23,18 @@ const ClientOnboarding = () => {
   const [loading, setLoading] = useState(false);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    email: '',
     mobile: ''
   });
+  const [otp, setOtp] = useState('');
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-fill form after selfie capture
   const handleSelfieCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -44,36 +47,64 @@ const ClientOnboarding = () => {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  // Send OTP
+  const handleSendOtp = async () => {
     if (!formData.mobile.trim()) {
-      alert('Please enter your mobile number before continuing.');
+      alert('Please enter your mobile number');
       return;
     }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/users/onboard-google`, {
+      const response = await fetch(`${API_URL}/api/users/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile })
+      });
+      if (response.ok) {
+        alert('OTP sent to your mobile');
+        setStep(3);
+      } else {
+        alert('Failed to send OTP');
+      }
+    } catch (error) {
+      console.error('Send OTP Error:', error);
+      alert('Error sending OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify OTP
+  const handleVerifyOtp = async () => {
+    if (!otp.trim()) {
+      alert('Please enter OTP');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/users/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          googleToken: credentialResponse.credential, 
           mobile: formData.mobile, 
-          selfieUrl: selfie, 
+          otp, 
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          selfieUrl: selfie,
           slug 
         })
       });
       if (response.ok) {
         const data = await response.json();
-        setFormData(prev => ({ ...prev, name: data.user.name }));
         await performAiMatch();
-        setStep(3);
+        setStep(4);
       } else {
-        alert('Google Authentication failed. Please try again.');
+        alert('Invalid or expired OTP');
       }
     } catch (error) {
-      console.error('Error:', error);
-      // Fallback for demo
-      await performAiMatch();
-      setStep(3);
+      console.error('Verify OTP Error:', error);
+      alert('Error verifying OTP');
     } finally {
       setLoading(false);
     }
@@ -85,8 +116,9 @@ const ClientOnboarding = () => {
        // 1. Get gallery media
        const galleryRes = await fetch(`${API_URL}/api/galleries/${slug}`);
        const galleryData = await galleryRes.json();
-       const mediaUrls = galleryData.media || [];
- 
+       const mediaItems = galleryData.media || [];
+       const mediaUrls = mediaItems.map((item: any) => typeof item === 'string' ? item : item.url);
+
        // 2. Call AI Search
        const aiRes = await fetch(`${AI_URL}/api/face-search`, {
          method: 'POST',
@@ -96,7 +128,7 @@ const ClientOnboarding = () => {
            gallery_urls: mediaUrls
          })
        });
- 
+
        if (aiRes.ok) {
          const aiData = await aiRes.json();
          setGalleryPhotos(aiData.matches || []);
@@ -118,13 +150,22 @@ const ClientOnboarding = () => {
      }
    };
 
-  const handleDownload = (url: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `RRE-Photo-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `RRE-Match-${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Failed to download image.');
+    }
   };
 
   const handleShare = async (url: string) => {
@@ -151,7 +192,7 @@ const ClientOnboarding = () => {
         {/* Progress Bar */}
         <div className="flex justify-between mb-12 relative">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0" />
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div 
               key={s}
               className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all duration-500 ${
@@ -164,6 +205,7 @@ const ClientOnboarding = () => {
         </div>
 
         <AnimatePresence mode="wait">
+          {/* Step 1: Capture Selfie */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -209,6 +251,7 @@ const ClientOnboarding = () => {
             </motion.div>
           )}
 
+          {/* Step 2: Registration Form */}
           {step === 2 && (
             <motion.div
               key="step2"
@@ -222,10 +265,45 @@ const ClientOnboarding = () => {
                   <User className="w-10 h-10 text-primary" />
                 </div>
                 <h2 className="heading-serif text-3xl mb-2">Registration</h2>
-                <p className="text-gray-400 font-medium">Continue with Google to complete your registration.</p>
+                <p className="text-gray-400 font-medium">Enter your details to continue.</p>
               </div>
 
               <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                    <input 
+                      type="text" 
+                      placeholder="First Name *" 
+                      required
+                      className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    />
+                  </div>
+                  <div className="relative">
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                    <input 
+                      type="text" 
+                      placeholder="Last Name *" 
+                      required
+                      className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="relative">
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                  <input 
+                    type="email" 
+                    placeholder="Email Address *" 
+                    required
+                    className="w-full pl-14 pr-6 py-5 bg-gray-50 rounded-2xl border-none font-bold focus:ring-2 focus:ring-primary/20"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
                 <div className="relative">
                   <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                   <input 
@@ -236,29 +314,72 @@ const ClientOnboarding = () => {
                     value={formData.mobile}
                     onChange={(e) => setFormData({...formData, mobile: e.target.value})}
                   />
-                  {!formData.mobile && <p className="text-xs text-red-400 font-semibold mt-2 pl-2">Required before signing in with Google</p>}
                 </div>
                 
-                <div className="flex justify-center pt-4">
-                  {loading ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  ) : (
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => alert('Google login failed')}
-                      useOneTap
-                      shape="pill"
-                      theme="filled_black"
-                    />
-                  )}
+                <button 
+                  onClick={handleSendOtp}
+                  disabled={loading || !formData.firstName || !formData.lastName || !formData.email || !formData.mobile}
+                  className="w-full btn-quote py-5 flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Send OTP'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: OTP Verification */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-[3rem] p-10 shadow-premium border border-gray-100"
+            >
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShieldCheck className="w-10 h-10 text-primary" />
+                </div>
+                <h2 className="heading-serif text-3xl mb-2">Verify Your Mobile</h2>
+                <p className="text-gray-400 font-medium">We've sent an OTP to {formData.mobile}</p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Enter 6-digit OTP" 
+                    maxLength={6}
+                    className="w-full text-center text-4xl font-black tracking-widest py-8 bg-gray-50 rounded-[2rem] border-none focus:ring-2 focus:ring-primary/20"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-4">
+                  <button 
+                    onClick={handleVerifyOtp}
+                    disabled={loading || otp.length < 6}
+                    className="w-full btn-quote py-5 flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Verify OTP'}
+                  </button>
+                  <button 
+                    onClick={handleSendOtp}
+                    disabled={loading}
+                    className="text-primary font-bold text-sm hover:underline"
+                  >
+                    Resend OTP
+                  </button>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {step === 3 && (
+          {/* Step 4: Photo Gallery */}
+          {step === 4 && (
             <motion.div
-              key="step3"
+              key="step4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-8"
@@ -279,7 +400,7 @@ const ClientOnboarding = () => {
                     >
                       <h2 className="heading-serif text-4xl sm:text-5xl text-white mb-4 italic">The Royal Wedding</h2>
                       <div className="w-20 h-0.5 bg-primary mx-auto mb-6" />
-                      <p className="text-white/80 font-bold tracking-[0.3em] text-xs uppercase">Welcome, {formData.name}</p>
+                      <p className="text-white/80 font-bold tracking-[0.3em] text-xs uppercase">Welcome, {formData.firstName}!</p>
                     </motion.div>
                   </div>
                 </div>
