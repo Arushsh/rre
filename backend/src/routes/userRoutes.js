@@ -74,10 +74,19 @@ router.post('/send-otp', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
   const { mobile, otp, firstName, lastName, email, slug, selfieUrl } = req.body;
   try {
+    console.log('🔍 User OTP Verify Debug:');
+    console.log('  Mobile queried:', mobile);
     const user = await User.findOne({ mobile });
+    console.log('  User found:', !!user);
     if (!user) {
       return res.status(400).json({ message: 'User not found with this mobile number' });
     }
+    console.log('  Received OTP:', JSON.stringify(otp), '| Type:', typeof otp);
+    console.log('  Stored OTP:  ', JSON.stringify(user.otp), '| Type:', typeof user.otp);
+    console.log('  OTP Expiry:  ', user.otpExpiry);
+    console.log('  Current Time:', new Date());
+    console.log('  Is Expired:  ', new Date(user.otpExpiry).getTime() < Date.now());
+    console.log('  OTP Match:   ', String(user.otp).trim() === String(otp).trim());
     if (String(user.otp).trim() !== String(otp).trim()) {
       return res.status(400).json({ message: 'Incorrect OTP entered' });
     }
