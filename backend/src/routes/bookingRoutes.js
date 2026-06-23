@@ -194,7 +194,7 @@ router.post('/verify-otp', async (req, res) => {
     }
     
     // Check OTP match
-    if (booking.otp !== otp) {
+    if (String(booking.otp) !== String(otp)) {
       return res.status(400).json({ success: false, message: 'Invalid OTP' });
     }
     
