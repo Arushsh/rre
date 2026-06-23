@@ -193,9 +193,18 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'OTP expired' });
     }
     
+    // Debug logging
+    console.log('🔍 OTP Verify Debug:');
+    console.log('  Received OTP:', otp, '| Type:', typeof otp);
+    console.log('  Stored OTP:  ', booking.otp, '| Type:', typeof booking.otp);
+    console.log('  OTP Expiry:  ', booking.otpExpiry);
+    console.log('  Current Time:', new Date());
+    console.log('  Is Expired:  ', new Date() > new Date(booking.otpExpiry));
+    console.log('  OTP Match:   ', String(booking.otp).trim() === String(otp).trim());
+
     // Check OTP match
-    if (String(booking.otp) !== String(otp)) {
-      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    if (String(booking.otp).trim() !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect OTP entered' });
     }
     
     // Mark as verified and confirmed

@@ -75,8 +75,14 @@ router.post('/verify-otp', async (req, res) => {
   const { mobile, otp, firstName, lastName, email, slug, selfieUrl } = req.body;
   try {
     const user = await User.findOne({ mobile });
-    if (!user || String(user.otp) !== String(otp) || new Date(user.otpExpiry).getTime() < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found with this mobile number' });
+    }
+    if (String(user.otp).trim() !== String(otp).trim()) {
+      return res.status(400).json({ message: 'Incorrect OTP entered' });
+    }
+    if (new Date(user.otpExpiry).getTime() < Date.now()) {
+      return res.status(400).json({ message: 'OTP has expired' });
     }
 
     user.isVerified = true;
