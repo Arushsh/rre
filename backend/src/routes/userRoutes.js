@@ -74,47 +74,75 @@ router.post('/send-otp', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
   const { mobile, otp, firstName, lastName, email, slug, selfieUrl } = req.body;
   try {
-    console.log('🔍 User OTP Verify Debug:');
-    console.log('  Mobile queried:', mobile);
-    const user = await User.findOne({ mobile });
-    console.log('  User found:', !!user);
-    if (!user) {
+    // Find the temp user created during send-otp
+    const tempUser = await User.findOne({ mobile });
+    if (!tempUser) {
       return res.status(400).json({ message: 'User not found with this mobile number' });
     }
-    console.log('  Received OTP:', JSON.stringify(otp), '| Type:', typeof otp);
-    console.log('  Stored OTP:  ', JSON.stringify(user.otp), '| Type:', typeof user.otp);
-    console.log('  OTP Expiry:  ', user.otpExpiry);
-    console.log('  Current Time:', new Date());
-    console.log('  Is Expired:  ', new Date(user.otpExpiry).getTime() < Date.now());
-    console.log('  OTP Match:   ', String(user.otp).trim() === String(otp).trim());
-    if (String(user.otp).trim() !== String(otp).trim()) {
+
+    // Verify OTP
+    if (String(tempUser.otp).trim() !== String(otp).trim()) {
       return res.status(400).json({ message: 'Incorrect OTP entered' });
     }
-    if (new Date(user.otpExpiry).getTime() < Date.now()) {
+    if (new Date(tempUser.otpExpiry).getTime() < Date.now()) {
       return res.status(400).json({ message: 'OTP has expired' });
     }
 
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-    
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
-    if (firstName && lastName) user.name = `${firstName} ${lastName}`;
-    if (email) user.email = email;
-    if (selfieUrl) user.selfieUrl = selfieUrl;
+    let finalUser = tempUser;
+
+    // If email is provided, check if another user already owns that email
+    if (email) {
+      const existingEmailUser = await User.findOne({ email, _id: { $ne: tempUser._id } });
+      if (existingEmailUser) {
+        // Merge: update the existing email user with the new mobile/selfie info
+        if (mobile) existingEmailUser.mobile = mobile;
+        if (selfieUrl) existingEmailUser.selfieUrl = selfieUrl;
+        if (firstName) existingEmailUser.firstName = firstName;
+        if (lastName) existingEmailUser.lastName = lastName;
+        if (firstName && lastName) existingEmailUser.name = `${firstName} ${lastName}`;
+        existingEmailUser.isVerified = true;
+
+        // Assign gallery if slug provided
+        if (slug) {
+          const Gallery = mongoose.model('Gallery');
+          const gallery = await Gallery.findOne({ slug });
+          if (gallery && !existingEmailUser.myEvents.includes(gallery._id)) {
+            existingEmailUser.myEvents.push(gallery._id);
+          }
+        }
+
+        await existingEmailUser.save();
+
+        // Delete the temp mobile-only user to keep DB clean
+        await User.deleteOne({ _id: tempUser._id });
+
+        finalUser = existingEmailUser;
+        return res.json({ message: 'User verified successfully', user: finalUser });
+      }
+    }
+
+    // No conflict — update the temp user normally
+    finalUser.isVerified = true;
+    finalUser.otp = undefined;
+    finalUser.otpExpiry = undefined;
+
+    if (firstName) finalUser.firstName = firstName;
+    if (lastName) finalUser.lastName = lastName;
+    if (firstName && lastName) finalUser.name = `${firstName} ${lastName}`;
+    if (email) finalUser.email = email;
+    if (selfieUrl) finalUser.selfieUrl = selfieUrl;
 
     // Assign gallery if slug provided
     if (slug) {
       const Gallery = mongoose.model('Gallery');
       const gallery = await Gallery.findOne({ slug });
-      if (gallery && !user.myEvents.includes(gallery._id)) {
-        user.myEvents.push(gallery._id);
+      if (gallery && !finalUser.myEvents.includes(gallery._id)) {
+        finalUser.myEvents.push(gallery._id);
       }
     }
 
-    await user.save();
-    res.json({ message: 'User verified successfully', user });
+    await finalUser.save();
+    res.json({ message: 'User verified successfully', user: finalUser });
   } catch (err) {
     console.error('Verify OTP Error:', err);
     res.status(500).json({ message: err.message });
