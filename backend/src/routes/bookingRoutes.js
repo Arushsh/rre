@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
 
 // SMS API configuration
 const SMS_API_URL = 'https://apitxt.com/api/sendOTP';
-const SMS_API_KEY = 'SnTt_DrJD5GV1-xOB8hZg6qYwP8XdfuezJJSdMPYVTE';
+const SMS_API_KEY = process.env.SMS_API_KEY;
 
 // Function to send OTP via SMS
 const sendOTPSMS = async (phone, otp) => {
