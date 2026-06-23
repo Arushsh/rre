@@ -43,7 +43,7 @@ const sendOTPSMS = async (phone, otp) => {
 router.post('/send-otp', async (req, res) => {
   const { mobile } = req.body;
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  const otpExpiry = new Date(Date.now() + 60 * 60 * 1000); // 60 mins
 
   try {
     let user = await User.findOne({ mobile });

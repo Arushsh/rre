@@ -69,7 +69,7 @@ const sendOTPEmail = async (email, name, otp) => {
           <div style="background: #f0f9ff; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
             <h1 style="font-size: 48px; letter-spacing: 10px; margin: 0; color: #0f172a;">${otp}</h1>
           </div>
-          <p style="color: #666;">This OTP is valid for <strong>10 minutes</strong>.</p>
+          <p style="color: #666;">This OTP is valid for <strong>60 minutes</strong>.</p>
           <p style="color: #666;">If you didn't request this, please ignore this email.</p>
         </div>
       </div>
@@ -106,7 +106,7 @@ router.post('/', async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    const otpExpiry = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes expiry
 
     // Create booking
     const booking = new Booking({
@@ -162,7 +162,7 @@ router.post('/:bookingId/resend-otp', async (req, res) => {
 
     // Generate new OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    const otpExpiry = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes expiry
 
     booking.otp = otp;
     booking.otpExpiry = otpExpiry;
