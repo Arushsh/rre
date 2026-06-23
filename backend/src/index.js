@@ -32,14 +32,8 @@ mongoose.connect(mongoURI, {
   serverSelectionTimeoutMS: 5000,
   connectTimeoutMS: 10000,
 })
-  .then(() => console.log('MongoDB connected successfully!'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    console.log('Retrying with local MongoDB fallback...');
-    mongoose.connect('mongodb://localhost:27017/rre_studio')
-      .then(() => console.log('Connected to local MongoDB fallback.'))
-      .catch(localErr => console.error('Local MongoDB also failed:', localErr));
-  });
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -49,14 +43,12 @@ app.get('/', (req, res) => {
 // AI Chat Route
 app.post('/api/ai/chat', async (req, res) => {
   const { message } = req.body;
-  console.log('AI Request:', message);
-  
+
   try {
     const msg = message.toLowerCase();
     const isHindi = /[अ-ह]/.test(message);
     let response = "";
 
-    // Knowledge Base
     const knowledge = {
       services: {
         en: "We offer Photography (Wedding, Fashion, Maternity), Videography (Cinematic Films, Ads), Music Production (Beats, Arrangement), and Live Streaming.",
@@ -85,7 +77,7 @@ app.post('/api/ai/chat', async (req, res) => {
     } else if (msg.includes("where") || msg.includes("location") || msg.includes("कहाँ") || msg.includes("पता")) {
       response = isHindi ? knowledge.location.hi : knowledge.location.en;
     } else if (msg.includes("talent") || msg.includes("hunt") || msg.includes("टैलेंट")) {
-      response = isHindi 
+      response = isHindi
         ? "हमारा टैलेंट हंट 2024 गायकों, अभिनेताओं और नर्तकों के लिए खुला है। आप हमारे टैलेंट हंट पेज पर AI-आधारित ऑडिशन के लिए पंजीकरण कर सकते हैं।"
         : "Our Talent Hunt 2024 is open for singers, actors, and dancers. You can register on our Talent Hunt page for an AI-powered audition.";
     } else if (msg.includes("ai") || msg.includes("face") || msg.includes("search")) {
@@ -97,13 +89,11 @@ app.post('/api/ai/chat', async (req, res) => {
         ? "रजत राज एंटरटेनमेंट के संस्थापक रजत राज हैं, जो एक प्रसिद्ध मीडिया विशेषज्ञ और संगीत निर्माता हैं।"
         : "Rajat Raj Entertainment was founded by Rajat Raj, a renowned media expert and music producer.";
     } else {
-      // Fallback to a smart generic response
       response = isHindi
         ? `आपका प्रश्न "${message}" बहुत अच्छा है। मैं रजत राज एंटरटेनमेंट के बारे में आपकी सहायता करने के लिए यहाँ हूँ। क्या आप हमारी सेवाओं, बुकिंग या टैलेंट हंट के बारे में और जानना चाहेंगे?`
         : `Your question "${message}" is very interesting. I am here to help you with anything related to Rajat Raj Entertainment. Would you like to know more about our services, booking process, or the Talent Hunt?`;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 600));
     res.json({ text: response });
   } catch (error) {
     res.status(500).json({ error: "AI Assistant is currently unavailable." });
@@ -112,5 +102,5 @@ app.post('/api/ai/chat', async (req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
