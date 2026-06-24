@@ -99,6 +99,7 @@ const AdminPanel = () => {
   
   const [payments, setPayments] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [editingGallery, setEditingGallery] = useState<any | null>(null);
 
   useEffect(() => {
     const auth = localStorage.getItem('isAdminAuthenticated');
@@ -517,6 +518,47 @@ const AdminPanel = () => {
     setIsEditingTeam(true);
   };
 
+  const handleDeleteGallery = async (id: string) => {
+    if (!confirm('Delete this gallery? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/galleries/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Gallery deleted');
+        fetchData();
+      } else {
+        toast.error('Failed to delete gallery');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Connection error');
+    }
+  };
+
+  const handleUpdateGallery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGallery) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/api/galleries/${editingGallery._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingGallery)
+      });
+      if (res.ok) {
+        toast.success('Gallery updated!');
+        setEditingGallery(null);
+        fetchData();
+      } else {
+        toast.error('Failed to update gallery');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Connection error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isAuthenticated) return null;
 
   return (
@@ -731,10 +773,10 @@ const AdminPanel = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center border-t border-gray-100 pt-6">
-                       <span className="text-sm font-black text-emerald-600">₹{gallery.revenue}</span>
+                       <span className="text-sm font-black text-emerald-600">{gallery.revenue ? `₹${gallery.revenue}` : '—'}</span>
                        <div className="flex gap-4">
-                         <CameraIcon onClick={() => openCamera(gallery.slug)} className="w-6 h-6 text-primary cursor-pointer hover:scale-110 transition-all" />
-                         <label className="cursor-pointer">
+                         <CameraIcon onClick={() => openCamera(gallery.slug)} className="w-6 h-6 text-primary cursor-pointer hover:scale-110 transition-all" title="Live Camera" />
+                         <label className="cursor-pointer" title="Upload Photos">
                             <Upload className="w-6 h-6 text-emerald-600 hover:scale-110 transition-all" />
                             <input 
                               type="file" 
@@ -747,8 +789,18 @@ const AdminPanel = () => {
                          <QrCode 
                             onClick={() => openQrModal(gallery)} 
                             className="w-6 h-6 text-gray-400 cursor-pointer hover:text-black transition-all" 
+                            title="View QR"
                          />
-                         <Trash2 className="w-6 h-6 text-red-300 cursor-pointer hover:text-red-600 transition-all" />
+                         <Settings
+                            onClick={() => setEditingGallery({ ...gallery })}
+                            className="w-6 h-6 text-blue-300 cursor-pointer hover:text-blue-600 transition-all"
+                            title="Edit Gallery"
+                         />
+                         <Trash2
+                            onClick={() => handleDeleteGallery(gallery._id)}
+                            className="w-6 h-6 text-red-300 cursor-pointer hover:text-red-600 transition-all"
+                            title="Delete Gallery"
+                         />
                        </div>
                     </div>
                   </div>
@@ -1113,60 +1165,67 @@ const AdminPanel = () => {
                   </p>
                 </div>
               ) : (
-                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-12 px-8 py-6 bg-gradient-to-r from-gray-50 border-b border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <div className="col-span-3">Customer</div>
-                    <div className="col-span-2">Service</div>
-                    <div className="col-span-2">Event Date</div>
-                    <div className="col-span-2">Amount</div>
-                    <div className="col-span-3">Status</div>
-                  </div>
-
-                  <div className="divide-y divide-gray-100">
-                    {bookings.map((booking) => (
-                      <motion.div key={booking._id} className="grid grid-cols-12 px-8 py-6 hover:bg-gray-50 transition-all duration-300">
-                        <div className="col-span-3 flex items-center gap-4">
+                <div className="space-y-4">
+                  {bookings.map((booking: any) => (
+                    <div key={booking._id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+                      {/* Header row */}
+                      <div className="grid grid-cols-12 px-8 py-5 items-center border-b border-gray-50">
+                        {/* Customer */}
+                        <div className="col-span-4 flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
                             <UserIcon className="w-6 h-6 text-blue-600" />
                           </div>
-                          <div className="flex flex-col">
-                            <p className="font-black text-lg">{booking.customerName}</p>
-                            <p className="text-gray-400 text-xs font-bold">{booking.customerEmail}</p>
+                          <div className="flex flex-col min-w-0">
+                            <p className="font-black text-base truncate">{booking.customerName}</p>
+                            <p className="text-gray-400 text-xs font-bold flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {booking.customerEmail}
+                            </p>
+                            {booking.customerPhone && (
+                              <p className="text-gray-500 text-xs font-bold flex items-center gap-1">
+                                <Phone className="w-3 h-3" /> {booking.customerPhone}
+                              </p>
+                            )}
                           </div>
                         </div>
 
+                        {/* Service */}
                         <div className="col-span-2 flex items-center">
-                          <p className="font-black">{booking.service?.title || "Unknown Service"}</p>
+                          <p className="font-black text-sm">{booking.service?.title || 'Unknown Service'}</p>
                         </div>
 
+                        {/* Date */}
                         <div className="col-span-2 flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
                           <p className="text-gray-500 text-sm font-bold">
                             {new Date(booking.eventDate).toLocaleDateString('en-IN')}
                           </p>
                         </div>
 
+                        {/* Amount */}
                         <div className="col-span-2 flex items-center">
-                          <span className="font-black text-xl text-emerald-600">
-                            ₹{booking.totalAmount / 100}
+                          <span className="font-black text-lg text-emerald-600">
+                            ₹{(booking.totalAmount / 100).toLocaleString('en-IN')}
                           </span>
                         </div>
 
-                        <div className="col-span-3 flex items-center justify-start gap-3">
-                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            booking.paymentStatus === 'paid' 
-                              ? 'bg-emerald-50 text-emerald-700' 
-                              : booking.paymentStatus === 'failed' 
-                                ? 'bg-red-50 text-red-700' 
-                                : 'bg-amber-50 text-amber-700'
-                          }`}>
-                            {booking.paymentStatus === 'paid' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            {booking.paymentStatus}
-                          </span>
-                          
-                          {/* Update Status Dropdown/Button */}
-                          <select 
-                            value={booking.status} 
+                        {/* Status controls */}
+                        <div className="col-span-2 flex items-center justify-end gap-2 flex-wrap">
+                          {/* Only show payment pending badge if not already confirmed/cancelled */}
+                          {booking.paymentStatus === 'paid' ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700">
+                              <CheckCircle className="w-3.5 h-3.5" /> Paid
+                            </span>
+                          ) : booking.paymentStatus === 'failed' ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-red-50 text-red-700">
+                              <AlertCircle className="w-3.5 h-3.5" /> Failed
+                            </span>
+                          ) : booking.status === 'confirmed' || booking.status === 'completed' || booking.status === 'cancelled' ? null : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-amber-50 text-amber-700">
+                              <AlertCircle className="w-3.5 h-3.5" /> Pending
+                            </span>
+                          )}
+                          <select
+                            value={booking.status}
                             onChange={async (e) => {
                               try {
                                 await fetch(`${API_URL}/api/bookings/${booking._id}/status`, {
@@ -1174,12 +1233,13 @@ const AdminPanel = () => {
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ status: e.target.value })
                                 });
+                                toast.success('Status updated');
                                 fetchData();
                               } catch (err) {
                                 console.error(err);
                               }
                             }}
-                            className="text-sm font-bold px-3 py-2 bg-secondary rounded-xl border border-gray-100"
+                            className="text-xs font-bold px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer"
                           >
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
@@ -1187,10 +1247,35 @@ const AdminPanel = () => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </div>
+                      </div>
 
-                      </motion.div>
-                    ))}
-                  </div>
+                      {/* Details row — location, notes, booking ID */}
+                      <div className="px-8 py-4 bg-gray-50/60 flex flex-wrap gap-6 text-[11px] font-bold text-gray-500">
+                        {booking.eventLocation && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                            {booking.eventLocation}
+                          </span>
+                        )}
+                        {booking.bookingId && (
+                          <span className="flex items-center gap-1.5 font-black text-gray-400">
+                            # {booking.bookingId}
+                          </span>
+                        )}
+                        {booking.additionalNotes && (
+                          <span className="italic text-gray-400 truncate max-w-xs">
+                            Note: {booking.additionalNotes}
+                          </span>
+                        )}
+                        <span className={`ml-auto px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${
+                          booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                          booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                          booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>{booking.status}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </motion.div>
@@ -1410,7 +1495,113 @@ const AdminPanel = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Edit Gallery Modal */}
+      <AnimatePresence>
+        {editingGallery && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[700] bg-black/80 backdrop-blur-2xl flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              className="bg-white max-w-2xl w-full rounded-[3rem] p-10 sm:p-14 shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide"
+            >
+              <button
+                onClick={() => setEditingGallery(null)}
+                className="absolute top-8 right-8 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-black"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <h3 className="heading-serif text-3xl mb-8 italic">Edit Gallery</h3>
+              <form onSubmit={handleUpdateGallery} className="space-y-6">
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Event Title</label>
+                  <input
+                    type="text"
+                    className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                    value={editingGallery.title}
+                    onChange={e => setEditingGallery({ ...editingGallery, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Event Date</label>
+                    <input
+                      type="date"
+                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      value={editingGallery.eventDate?.split('T')[0] || ''}
+                      onChange={e => setEditingGallery({ ...editingGallery, eventDate: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Location</label>
+                    <input
+                      type="text"
+                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      value={editingGallery.location}
+                      onChange={e => setEditingGallery({ ...editingGallery, location: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Access Password</label>
+                    <input
+                      type="text"
+                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      value={editingGallery.password}
+                      onChange={e => setEditingGallery({ ...editingGallery, password: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">
+                      Price (₹) <span className="normal-case font-medium text-gray-400 tracking-normal">— Optional</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      value={editingGallery.revenue || ''}
+                      onChange={e => setEditingGallery({ ...editingGallery, revenue: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="checkbox"
+                    id="editIsPublic"
+                    className="w-5 h-5 rounded"
+                    checked={editingGallery.isPublic}
+                    onChange={e => setEditingGallery({ ...editingGallery, isPublic: e.target.checked })}
+                  />
+                  <label htmlFor="editIsPublic" className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Make Gallery Public</label>
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingGallery(null)}
+                    className="flex-1 btn-satyam-white !rounded-2xl !py-5 !text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 btn-quote !py-5 !text-sm disabled:opacity-50"
+                  >
+                    {isSubmitting ? <RefreshCw className="w-5 h-5 animate-spin mx-auto" /> : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+
   );
 };
 

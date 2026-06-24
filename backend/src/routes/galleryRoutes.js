@@ -101,4 +101,31 @@ router.post('/:slug/add-media', async (req, res) => {
   }
 });
 
+// Delete a gallery (Admin)
+router.delete('/:id', async (req, res) => {
+  try {
+    const gallery = await Gallery.findByIdAndDelete(req.params.id);
+    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
+    res.json({ success: true, message: 'Gallery deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Update a gallery (Admin)
+router.put('/:id', async (req, res) => {
+  try {
+    const gallery = await Gallery.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
+    res.json(gallery);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
+
