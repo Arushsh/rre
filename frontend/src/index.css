@@ -89,3 +89,32 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #000;
 }
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* GPU acceleration for animated cards */
+.group {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slow-zoom,
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
