@@ -1288,7 +1288,7 @@ const AdminPanel = () => {
 
           {!loading && activeTab === 'payments' && (
             (() => {
-              // Combine gallery payments and booking payments for unified history
+              // Combine gallery payments, booking payments, and manual gallery revenue for unified history
               const allTransactions = [
                 ...payments.map(p => ({
                   _id: p._id,
@@ -1309,6 +1309,16 @@ const AdminPanel = () => {
                   date: b.updatedAt || b.createdAt,
                   status: b.paymentStatus,
                   type: 'Booking Payment'
+                })),
+                ...galleries.filter(g => g.revenue > 0).map(g => ({
+                  _id: g._id + '_manual',
+                  customerName: "Offline Payment",
+                  customerEmail: "Added manually via gallery",
+                  title: g.title,
+                  amount: g.revenue,
+                  date: g.createdAt,
+                  status: 'paid',
+                  type: 'Manual Entry'
                 }))
               ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
