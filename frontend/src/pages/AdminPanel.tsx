@@ -108,6 +108,12 @@ const AdminPanel = () => {
     } else {
       setIsAuthenticated(true);
       fetchData();
+      
+      // Real-time polling every 10 seconds for live updates
+      const interval = setInterval(() => {
+        fetchData(true);
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [navigate]);
 
@@ -116,8 +122,8 @@ const AdminPanel = () => {
     navigate('/admin/login');
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const galRes = await fetch(`${API_URL}/api/galleries`);
       if (galRes.ok) setGalleries(await galRes.json());
@@ -142,7 +148,7 @@ const AdminPanel = () => {
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -1281,86 +1287,109 @@ const AdminPanel = () => {
           )}
 
           {!loading && activeTab === 'payments' && (
-            <motion.div key="payments" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Payment History</h2>
-                <div className="flex items-center gap-3 px-6 py-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                  <CreditCard className="w-5 h-5 text-emerald-600" />
-                  <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">
-                    Total Revenue: ₹{payments.reduce((acc, p) => acc + (p.amount / 100), 0)}
-                  </span>
-                </div>
-              </div>
+            (() => {
+              // Combine gallery payments and booking payments for unified history
+              const allTransactions = [
+                ...payments.map(p => ({
+                  _id: p._id,
+                  customerName: p.customerName,
+                  customerEmail: p.customerEmail,
+                  title: p.gallery?.title || "Unknown Gallery",
+                  amount: p.amount / 100,
+                  date: p.createdAt,
+                  status: p.status,
+                  type: 'Gallery Purchase'
+                })),
+                ...bookings.filter(b => b.paymentStatus !== 'pending' && b.paymentStatus).map(b => ({
+                  _id: b._id,
+                  customerName: b.customerName,
+                  customerEmail: b.customerEmail,
+                  title: b.service?.title || "Unknown Service",
+                  amount: b.totalAmount / 100,
+                  date: b.updatedAt || b.createdAt,
+                  status: b.paymentStatus,
+                  type: 'Booking Payment'
+                }))
+              ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-              {payments.length === 0 ? (
-                <div className="bg-gradient-to-br from-gray-50 to-white p-16 rounded-[3rem] border border-gray-100 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <CreditCard className="w-10 h-10 text-primary" />
+              return (
+                <motion.div key="payments" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
+                    <h2 className="heading-serif text-3xl sm:text-4xl">Payment History</h2>
+                    <div className="flex items-center gap-3 px-6 py-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                      <CreditCard className="w-5 h-5 text-emerald-600" />
+                      <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">
+                        Total Revenue: ₹{allTransactions.filter(t => t.status === 'paid' || t.status === 'confirmed').reduce((acc, t) => acc + (t.amount || 0), 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="heading-serif text-3xl mb-4 italic">No Payments Yet</h3>
-                  <p className="text-gray-500 font-medium max-w-xl mx-auto">
-                    Payments will appear here once your clients start downloading photos!
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-12 px-8 py-6 bg-gradient-to-r from-gray-50 border-b border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <div className="col-span-3">Customer</div>
-                    <div className="col-span-2">Gallery</div>
-                    <div className="col-span-2">Amount</div>
-                    <div className="col-span-2">Date</div>
-                    <div className="col-span-3">Status</div>
-                  </div>
 
-                  <div className="divide-y divide-gray-100">
-                    {payments.map((payment) => (
-                      <motion.div key={payment._id} className="grid grid-cols-12 px-8 py-6 hover:bg-gray-50 transition-all duration-300">
-                        <div className="col-span-3 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="w-6 h-6 text-primary" />
-                          </div>
-                          <div className="flex flex-col">
-                            <p className="font-black text-lg">{payment.customerName}</p>
-                            <p className="text-gray-400 text-xs font-bold">{payment.customerEmail}</p>
-                          </div>
-                        </div>
+                  {allTransactions.length === 0 ? (
+                    <div className="bg-gradient-to-br from-gray-50 to-white p-16 rounded-[3rem] border border-gray-100 text-center">
+                      <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <CreditCard className="w-10 h-10 text-primary" />
+                      </div>
+                      <h3 className="heading-serif text-3xl mb-4 italic">No Payments Yet</h3>
+                      <p className="text-gray-500 font-medium max-w-xl mx-auto">
+                        Payments will appear here once your clients start booking services or purchasing galleries!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="hidden md:grid grid-cols-12 px-8 py-6 bg-gradient-to-r from-gray-50 border-b border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        <div className="col-span-4">Customer</div>
+                        <div className="col-span-3">Item / Service</div>
+                        <div className="col-span-2">Amount</div>
+                        <div className="col-span-3">Status</div>
+                      </div>
 
-                        <div className="col-span-2 flex items-center">
-                          <p className="font-black">{payment.gallery?.title || "Unknown Gallery"}</p>
-                        </div>
+                      <div className="divide-y divide-gray-100">
+                        {allTransactions.map((payment) => (
+                          <motion.div key={payment._id} className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-8 py-5 items-start md:items-center gap-4 md:gap-0 hover:bg-gray-50 transition-all duration-300">
+                            <div className="md:col-span-4 flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
+                                <UserIcon className="w-6 h-6 text-primary" />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <p className="font-black text-base truncate">{payment.customerName}</p>
+                                <p className="text-gray-400 text-xs font-bold truncate">{payment.customerEmail}</p>
+                              </div>
+                            </div>
 
-                        <div className="col-span-2 flex items-center">
-                          <span className="font-black text-xl text-emerald-600">
-                            ₹{payment.amount / 100}
-                          </span>
-                        </div>
+                            <div className="md:col-span-3 flex flex-col">
+                              <p className="font-black text-sm truncate">{payment.title}</p>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-1 rounded w-max mt-1">{payment.type}</span>
+                            </div>
 
-                        <div className="col-span-2 flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <p className="text-gray-500 text-sm font-bold">
-                            {new Date(payment.createdAt).toLocaleDateString('en-IN')}
-                          </p>
-                        </div>
+                            <div className="md:col-span-2 flex flex-col">
+                              <span className="font-black text-lg text-emerald-600">
+                                ₹{payment.amount?.toLocaleString('en-IN') || 0}
+                              </span>
+                              <p className="text-gray-400 text-[10px] font-bold flex items-center gap-1 mt-1">
+                                <Clock className="w-3 h-3" /> {new Date(payment.date).toLocaleDateString('en-IN')}
+                              </p>
+                            </div>
 
-                        <div className="col-span-3 flex items-center justify-start">
-                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            payment.status === 'paid' 
-                              ? 'bg-emerald-50 text-emerald-700' 
-                              : payment.status === 'failed' 
-                                ? 'bg-red-50 text-red-700' 
-                                : 'bg-amber-50 text-amber-700'
-                          }`}>
-                            {payment.status === 'paid' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            {payment.status}
-                          </span>
-                        </div>
-
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
+                            <div className="md:col-span-3 flex items-center justify-start md:justify-end">
+                              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                payment.status === 'paid' || payment.status === 'confirmed'
+                                  ? 'bg-emerald-50 text-emerald-700' 
+                                  : payment.status === 'failed' 
+                                    ? 'bg-red-50 text-red-700' 
+                                    : 'bg-amber-50 text-amber-700'
+                              }`}>
+                                {payment.status === 'paid' || payment.status === 'confirmed' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                {payment.status}
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })()
           )}
         </AnimatePresence>
       </div>
