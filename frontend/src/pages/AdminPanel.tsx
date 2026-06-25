@@ -47,8 +47,8 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [galleries, setGalleries] = useState([]);
-  const [clients, setClients] = useState([]);
+  const [galleries, setGalleries] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalEvents: 0,
     totalClients: 0,
