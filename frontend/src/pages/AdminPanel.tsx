@@ -1166,9 +1166,9 @@ const AdminPanel = () => {
                   {bookings.map((booking: any) => (
                     <div key={booking._id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
                       {/* Header row */}
-                      <div className="grid grid-cols-12 px-8 py-5 items-center border-b border-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-8 py-5 items-start md:items-center gap-4 md:gap-0 border-b border-gray-50">
                         {/* Customer */}
-                        <div className="col-span-4 flex items-center gap-4">
+                        <div className="md:col-span-4 flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
                             <UserIcon className="w-6 h-6 text-blue-600" />
                           </div>
@@ -1186,12 +1186,12 @@ const AdminPanel = () => {
                         </div>
 
                         {/* Service */}
-                        <div className="col-span-2 flex items-center">
+                        <div className="md:col-span-2 flex items-center">
                           <p className="font-black text-sm">{booking.service?.title || 'Unknown Service'}</p>
                         </div>
 
                         {/* Date */}
-                        <div className="col-span-2 flex items-center gap-2">
+                        <div className="md:col-span-2 flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
                           <p className="text-gray-500 text-sm font-bold">
                             {new Date(booking.eventDate).toLocaleDateString('en-IN')}
@@ -1199,14 +1199,14 @@ const AdminPanel = () => {
                         </div>
 
                         {/* Amount */}
-                        <div className="col-span-2 flex items-center">
+                        <div className="md:col-span-2 flex items-center">
                           <span className="font-black text-lg text-emerald-600">
                             ₹{(booking.totalAmount / 100).toLocaleString('en-IN')}
                           </span>
                         </div>
 
                         {/* Status controls */}
-                        <div className="col-span-2 flex items-center justify-end gap-2 flex-wrap">
+                        <div className="md:col-span-2 flex items-center justify-start md:justify-end gap-2 flex-wrap">
                           {/* Only show payment pending badge if not already confirmed/cancelled */}
                           {booking.paymentStatus === 'paid' ? (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700">
@@ -1247,24 +1247,26 @@ const AdminPanel = () => {
                       </div>
 
                       {/* Details row — location, notes, booking ID */}
-                      <div className="px-8 py-4 bg-gray-50/60 flex flex-wrap gap-6 text-[11px] font-bold text-gray-500">
-                        {booking.eventLocation && (
-                          <span className="flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                            {booking.eventLocation}
-                          </span>
-                        )}
-                        {booking.bookingId && (
-                          <span className="flex items-center gap-1.5 font-black text-gray-400">
-                            # {booking.bookingId}
-                          </span>
-                        )}
+                      <div className="px-6 md:px-8 py-4 bg-gray-50/60 flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 text-[11px] font-bold text-gray-500">
+                        <div className="flex flex-wrap gap-4 md:gap-6 items-center">
+                          {booking.eventLocation && (
+                            <span className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                              {booking.eventLocation}
+                            </span>
+                          )}
+                          {booking.bookingId && (
+                            <span className="flex items-center gap-1.5 font-black text-gray-400">
+                              # {booking.bookingId}
+                            </span>
+                          )}
+                        </div>
                         {booking.additionalNotes && (
-                          <span className="italic text-gray-400 truncate max-w-xs">
+                          <span className="italic text-gray-400 truncate max-w-full md:max-w-xs block">
                             Note: {booking.additionalNotes}
                           </span>
                         )}
-                        <span className={`ml-auto px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${
+                        <span className={`md:ml-auto inline-block w-max px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${
                           booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
                           booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                           booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
