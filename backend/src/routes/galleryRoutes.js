@@ -4,7 +4,9 @@ const Gallery = require('../models/Gallery');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
-// Get all galleries (Admin only usually, but public for now for demo)
+// ─── STATIC ROUTES FIRST (must be before /:slug wildcard) ──────────────────
+
+// Get all galleries
 router.get('/', async (req, res) => {
   try {
     const galleries = await Gallery.find().sort({ createdAt: -1 });
@@ -14,38 +16,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single gallery by slug
-router.get('/:slug', async (req, res) => {
-  try {
-    const gallery = await Gallery.findOne({ slug: req.params.slug });
-    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
-    
-    // We don't send the password and media list if it's protected and not verified yet
-    // But for simplicity in this demo, we'll send everything and handle protection on frontend
-    res.json(gallery);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Verify Gallery Password
-router.post('/verify-password', async (req, res) => {
-  const { slug, password } = req.body;
-  try {
-    const gallery = await Gallery.findOne({ slug });
-    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
-    
-    if (gallery.password === password) {
-      res.json({ success: true, media: gallery.media });
-    } else {
-      res.status(401).json({ success: false, message: 'Invalid password' });
-    }
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Get Admin Stats
+// Get Admin Stats — MUST be before /:slug
 router.get('/admin/stats', async (req, res) => {
   try {
     const galleries = await Gallery.find();
@@ -61,10 +32,27 @@ router.get('/admin/stats', async (req, res) => {
   }
 });
 
+// Verify Gallery Password — MUST be before /:slug
+router.post('/verify-password', async (req, res) => {
+  const { slug, password } = req.body;
+  try {
+    const gallery = await Gallery.findOne({ slug });
+    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
+
+    if (gallery.password === password) {
+      res.json({ success: true, media: gallery.media });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid password' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Create new gallery (Admin)
 router.post('/', async (req, res) => {
   const { title, slug, eventDate, location, photographer, password, coverImage, media, revenue } = req.body;
-  
+
   const gallery = new Gallery({
     title,
     slug,
@@ -86,13 +74,56 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Delete a gallery by ID (Admin)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId format first to avoid CastError
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid gallery ID' });
+    }
+
+    const gallery = await Gallery.findByIdAndDelete(id);
+    if (!gallery) return res.status(404).json({ success: false, message: 'Gallery not found' });
+
+    res.json({ success: true, message: 'Gallery deleted successfully' });
+  } catch (err) {
+    console.error('Delete gallery error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Update a gallery by ID (Admin)
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid gallery ID' });
+    }
+
+    const gallery = await Gallery.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+    if (!gallery) return res.status(404).json({ success: false, message: 'Gallery not found' });
+
+    res.json(gallery);
+  } catch (err) {
+    console.error('Update gallery error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Add Media to existing gallery
 router.post('/:slug/add-media', async (req, res) => {
   const { media } = req.body;
   try {
     const gallery = await Gallery.findOne({ slug: req.params.slug });
     if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
-    
+
     gallery.media.push(...media);
     await gallery.save();
     res.json(gallery);
@@ -101,25 +132,12 @@ router.post('/:slug/add-media', async (req, res) => {
   }
 });
 
-// Delete a gallery (Admin)
-router.delete('/:id', async (req, res) => {
-  try {
-    const gallery = await Gallery.findByIdAndDelete(req.params.id);
-    if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
-    res.json({ success: true, message: 'Gallery deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// ─── DYNAMIC WILDCARD LAST ──────────────────────────────────────────────────
 
-// Update a gallery (Admin)
-router.put('/:id', async (req, res) => {
+// Get single gallery by slug — MUST be last
+router.get('/:slug', async (req, res) => {
   try {
-    const gallery = await Gallery.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
+    const gallery = await Gallery.findOne({ slug: req.params.slug });
     if (!gallery) return res.status(404).json({ message: 'Gallery not found' });
     res.json(gallery);
   } catch (err) {
@@ -128,4 +146,3 @@ router.put('/:id', async (req, res) => {
 });
 
 module.exports = router;
-
