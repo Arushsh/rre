@@ -775,8 +775,8 @@ const AdminPanel = () => {
                     <div className="flex justify-between items-center border-t border-gray-100 pt-6">
                        <span className="text-sm font-black text-emerald-600">{gallery.revenue ? `₹${gallery.revenue}` : '—'}</span>
                        <div className="flex gap-4">
-                         <CameraIcon onClick={() => openCamera(gallery.slug)} className="w-6 h-6 text-primary cursor-pointer hover:scale-110 transition-all" title="Live Camera" />
-                         <label className="cursor-pointer" title="Upload Photos">
+                         <CameraIcon onClick={() => openCamera(gallery.slug)} className="w-6 h-6 text-primary cursor-pointer hover:scale-110 transition-all" />
+                         <label className="cursor-pointer">
                             <Upload className="w-6 h-6 text-emerald-600 hover:scale-110 transition-all" />
                             <input 
                               type="file" 
@@ -789,17 +789,14 @@ const AdminPanel = () => {
                          <QrCode 
                             onClick={() => openQrModal(gallery)} 
                             className="w-6 h-6 text-gray-400 cursor-pointer hover:text-black transition-all" 
-                            title="View QR"
                          />
                          <Settings
                             onClick={() => setEditingGallery({ ...gallery })}
                             className="w-6 h-6 text-blue-300 cursor-pointer hover:text-blue-600 transition-all"
-                            title="Edit Gallery"
                          />
                          <Trash2
                             onClick={() => handleDeleteGallery(gallery._id)}
                             className="w-6 h-6 text-red-300 cursor-pointer hover:text-red-600 transition-all"
-                            title="Delete Gallery"
                          />
                        </div>
                     </div>
