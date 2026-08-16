@@ -3,7 +3,7 @@ import EventManagement from '../components/EventManagement';
 
 const EventsPage = () => {
   return (
-    <div className="pt-20">
+    <div className="min-h-screen bg-[#000000]">
       <EventManagement />
     </div>
   );

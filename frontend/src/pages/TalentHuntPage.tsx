@@ -3,7 +3,7 @@ import TalentHunt from '../components/TalentHunt';
 
 const TalentHuntPage = () => {
   return (
-    <div className="pt-20">
+    <div className="min-h-screen bg-[#000000] pt-20">
       <TalentHunt />
     </div>
   );

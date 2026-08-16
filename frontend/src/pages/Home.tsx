@@ -1,204 +1,212 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Instagram, Facebook, Youtube, Camera, Video, Mic2, Radio, Star, Users, Zap } from 'lucide-react';
+import { ArrowRight, Star, Users, Zap, Trophy, Camera, Video, Mic2, Radio, Sparkles } from 'lucide-react';
+import Hero from '../components/Hero';
+import Services from '../components/Services';
+import GlassCard from '../components/ui/GlassCard';
+import SectionHeader from '../components/ui/SectionHeader';
+import Button from '../components/ui/Button';
 
-const Home = () => {
+const Home: React.FC = () => {
   return (
-    <div className="bg-white selection:bg-black selection:text-white">
-      {/* Hero Section - Ultra Responsive */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-neutral-900">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1600&q=80" 
-            className="w-full h-full object-cover opacity-60 animate-slow-zoom" 
-            alt="RRE Hero" 
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
-        </div>
-        
-        <div className="satyam-container relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: "circOut" }}
-            className="max-w-5xl mx-auto"
-          >
-            <div className="flex justify-center items-center gap-4 mb-8">
-              <div className="h-[1px] w-8 md:w-12 bg-primary/50" />
-              <span className="text-[10px] md:text-xs font-black tracking-[0.6em] uppercase text-white/70">Premium Media Brand</span>
-              <div className="h-[1px] w-8 md:w-12 bg-primary/50" />
-            </div>
+    <div className="bg-[#000000] text-white selection:bg-[#00E5FF] selection:text-black">
+      
+      {/* 1. CINEMATIC HERO */}
+      <Hero />
+
+      {/* 2. EDITORIAL BRAND INTRO */}
+      <section className="py-28 md:py-36 bg-[#000000] relative overflow-hidden border-t border-white/10">
+        <div className="satyam-container relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
             
-            <h1 className="heading-serif text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-light text-white mb-12 leading-[1.1] tracking-tight">
-              Eternal <br className="hidden sm:block" /> <span className="italic font-normal text-primary">Moments</span>
-            </h1>
-
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6 md:gap-8">
-              <Link to="/booking" className="btn-quote w-full sm:w-auto group">
-                Request a Quote
-                <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/portfolio" className="btn-satyam-glass w-full sm:w-auto">
-                Explore Work
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Floating Socials - Responsive hide on mobile */}
-        <div className="absolute left-6 md:left-12 bottom-12 hidden md:flex flex-col space-y-8 text-white z-20">
-          <a href="#" className="hover:text-primary transition-all uppercase text-[0.6rem] font-black tracking-widest rotate-[-90deg] origin-left">Instagram</a>
-          <a href="#" className="hover:text-primary transition-all uppercase text-[0.6rem] font-black tracking-widest rotate-[-90deg] origin-left">Facebook</a>
-          <a href="#" className="hover:text-primary transition-all uppercase text-[0.6rem] font-black tracking-widest rotate-[-90deg] origin-left">Youtube</a>
-        </div>
-        
-        <div className="absolute right-6 md:right-12 bottom-12 z-20 flex flex-col items-end gap-4">
-           <div className="w-[1px] h-20 bg-gradient-to-b from-white/50 to-transparent mx-auto" />
-           <span className="text-[0.6rem] font-black tracking-[0.4em] uppercase text-white/40 rotate-[-90deg] origin-right">Scroll</span>
-        </div>
-      </section>
-
-      {/* Intro Section - Clean & Responsive */}
-      <section className="py-24 md:py-40 bg-white">
-        <div className="satyam-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24 items-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="max-w-2xl"
+              transition={{ duration: 0.8 }}
+              className="lg:col-span-7 space-y-8"
             >
-              <h2 className="heading-serif text-4xl md:text-7xl font-light text-black leading-[1.2] mb-12">
-                We believe in <span className="italic underline underline-offset-[12px] decoration-1 decoration-neutral-200">the art of observation</span>.
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-subtle text-[10px] font-bold uppercase tracking-[0.3em] text-[#00E5FF]">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Boutique Media & AI Production</span>
+              </div>
+
+              <h2 className="heading-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05]">
+                WE BELIEVE IN <br />
+                <span className="italic font-normal text-white/80">THE ART OF OBSERVATION.</span>
               </h2>
-              <p className="text-lg md:text-xl text-neutral-400 font-medium leading-relaxed mb-12">
-                Rajat Raj Entertainment is a boutique media house dedicated to high-end photography, cinematic films, and world-class music production. We blend human emotion with AI precision.
+
+              <p className="editorial-subhead text-base sm:text-xl text-white/70 font-normal leading-relaxed max-w-2xl">
+                Rajat Raj Entertainment is a boutique media house dedicated to high-end photography, cinematic films, and world-class music production. We blend human emotion with artificial intelligence.
               </p>
-              <div className="grid grid-cols-2 gap-8 md:gap-12">
+
+              {/* Statistics Grid */}
+              <div className="grid grid-cols-2 gap-8 pt-4 border-t border-white/10 max-w-md">
                 <div>
-                  <p className="text-3xl md:text-4xl font-black mb-2">12k+</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Captures</p>
+                  <p className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-1">
+                    12k+
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#00E5FF]">
+                    Captured Moments
+                  </p>
                 </div>
                 <div>
-                  <p className="text-3xl md:text-4xl font-black mb-2">500+</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Clients</p>
+                  <p className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-1">
+                    500+
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#00E5FF]">
+                    Delighted Clients
+                  </p>
                 </div>
               </div>
             </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative aspect-square md:aspect-[4/5] rounded-[3rem] md:rounded-[5rem] overflow-hidden shadow-2xl"
+              transition={{ duration: 0.8 }}
+              className="lg:col-span-5"
             >
-              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1000&q=80" className="w-full h-full object-cover" alt="Studio Setup" />
-              <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-all duration-700" />
+              <GlassCard variant="strong" className="!p-4 border-white/20">
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1000&q=80"
+                    alt="RRE Studio Setup"
+                    className="w-full h-full object-cover opacity-80 hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-[#00E5FF] mb-1">
+                      Studio A-1 Facilities
+                    </p>
+                    <p className="text-sm font-bold text-white uppercase tracking-wider">
+                      Dildarnagar, Uttar Pradesh
+                    </p>
+                  </div>
+                </div>
+              </GlassCard>
             </motion.div>
+
           </div>
         </div>
       </section>
 
-      {/* Featured Services - Large Responsive Grid */}
-      <section className="py-24 md:py-32 bg-secondary">
-        <div className="satyam-container">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <div className="max-w-2xl">
-              <h2 className="heading-serif text-4xl md:text-6xl italic mb-6">Our Expertise</h2>
-              <p className="text-neutral-500 font-medium">Delivering world-class media solutions across all creative domains.</p>
-            </div>
-            <Link to="/portfolio" className="btn-satyam-outline">View All Work</Link>
-          </div>
+      {/* 3. EDITORIAL SERVICES */}
+      <Services />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {[
-              { title: "Photography", img: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1000&q=80", link: "/photography", icon: Camera },
-              { title: "Videography", img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&q=80", link: "/videography", icon: Video },
-              { title: "Music Studio", img: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1000&q=80", link: "/audio-recording", icon: Mic2 },
-              { title: "Live Stream", img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1000&q=80", link: "/live-streaming", icon: Radio },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Link to={item.link} className="group block">
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-[2.5rem] mb-8 bg-neutral-100 shadow-premium">
-                    <img src={item.img} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" alt={item.title} />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                      <div className="bg-white/90 backdrop-blur-md px-8 py-4 text-[10px] font-black uppercase tracking-[0.4em] text-black">Learn More</div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-4">
-                    <div className="flex items-center gap-6">
-                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:bg-black group-hover:text-white transition-all">
-                        <item.icon className="w-6 h-6" />
-                      </div>
-                      <h3 className="heading-serif text-3xl font-light text-black uppercase tracking-widest group-hover:italic transition-all">{item.title}</h3>
-                    </div>
-                    <ArrowRight className="w-6 h-6 text-neutral-300 group-hover:text-black group-hover:translate-x-2 transition-all" />
-                  </div>
+      {/* 4. TALENT HUNT DISCOVERY BANNER */}
+      <section className="py-28 bg-[#050708] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <GlassCard variant="floating" className="!p-8 md:!p-16 border-white/20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              
+              <div className="lg:col-span-8 space-y-6">
+                <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#00E5FF]/10 border border-[#00E5FF]/30 text-[#00E5FF] text-[10px] font-bold uppercase tracking-[0.25em]">
+                  <Trophy className="w-4 h-4" />
+                  <span>Season 2026 Live Auditions</span>
+                </div>
+                
+                <h2 className="heading-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.05]">
+                  YOUR STAGE <span className="italic font-normal text-[#00E5FF]">AWAITS.</span>
+                </h2>
+                
+                <p className="editorial-subhead text-sm sm:text-base text-white/70 max-w-xl font-normal leading-relaxed">
+                  India's first AI-integrated talent hunt. Sing, act, or dance. Get scored by RRE AI and feature in our upcoming productions.
+                </p>
+              </div>
+
+              <div className="lg:col-span-4 flex justify-start lg:justify-end">
+                <Link to="/talent-hunt">
+                  <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                    Enter Audition →
+                  </Button>
                 </Link>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+
+            </div>
+          </GlassCard>
         </div>
       </section>
 
-      {/* AI Features Highlight */}
-      <section className="py-24 md:py-40 bg-black text-white overflow-hidden">
-        <div className="satyam-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-12">
-              <div className="inline-flex items-center gap-3 px-6 py-2 bg-primary/20 rounded-full border border-primary/30">
-                <Zap className="w-4 h-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Next-Gen Technology</span>
+      {/* 5. AI FEATURES HIGHLIGHT */}
+      <section className="py-28 bg-[#000000] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <SectionHeader
+            index="02"
+            category="NEXT-GEN TECHNOLOGY"
+            title="AI-POWERED EXPERIENCES."
+            description="We're redefining the media industry with AI — from instant face match search in galleries to automated audition pitch scoring."
+            action={
+              <Link to="/ai-hub">
+                <Button variant="glass" size="md">
+                  Explore AI Hub →
+                </Button>
+              </Link>
+            }
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <GlassCard variant="subtle" className="space-y-6">
+              <div className="w-12 h-12 rounded-xl bg-[#00E5FF]/10 border border-[#00E5FF]/30 flex items-center justify-center text-[#00E5FF]">
+                <Star className="w-6 h-6" />
               </div>
-              <h2 className="heading-serif text-5xl md:text-8xl italic">AI Powered <br/>Experiences</h2>
-              <p className="text-xl text-neutral-400 font-medium leading-relaxed max-w-xl">
-                We're redefining the media industry with AI. From instant face search in galleries to automated talent analysis, we bring the future to you today.
+              <h3 className="heading-serif text-2xl font-bold text-white">
+                AI Face Match Search
+              </h3>
+              <p className="editorial-subhead text-sm text-white/60 leading-relaxed">
+                Upload a selfie inside any gallery album to instantly isolate all event photos containing your face using deep feature embeddings.
               </p>
-              <div className="flex flex-wrap gap-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                    <Star className="w-6 h-6 text-primary" />
-                  </div>
-                  <span className="text-sm font-bold uppercase tracking-widest">Face Match</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-primary" />
-                  </div>
-                  <span className="text-sm font-bold uppercase tracking-widest">Talent AI</span>
-                </div>
+              <Link to="/gallery" className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#00E5FF] hover:underline">
+                Try Gallery Face Search →
+              </Link>
+            </GlassCard>
+
+            <GlassCard variant="subtle" className="space-y-6">
+              <div className="w-12 h-12 rounded-xl bg-[#00E5FF]/10 border border-[#00E5FF]/30 flex items-center justify-center text-[#00E5FF]">
+                <Users className="w-6 h-6" />
               </div>
-              <Link to="/ai-hub" className="btn-satyam-glass inline-flex">Explore AI Hub</Link>
-            </div>
-            <div className="relative">
-              <div className="aspect-square rounded-[4rem] overflow-hidden border border-white/10">
-                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1000&q=80" className="w-full h-full object-cover opacity-60" alt="AI Tech" />
-              </div>
-              <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/20 rounded-full blur-[100px]" />
-              <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-500/20 rounded-full blur-[100px]" />
-            </div>
+              <h3 className="heading-serif text-2xl font-bold text-white">
+                AI Talent Audition Scoring
+              </h3>
+              <p className="editorial-subhead text-sm text-white/60 leading-relaxed">
+                Automated audio and visual evaluation evaluating pitch stability, expression dynamics, and confidence metrics for artists.
+              </p>
+              <Link to="/talent-hunt" className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#00E5FF] hover:underline">
+                Submit Audition →
+              </Link>
+            </GlassCard>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 md:py-40 bg-white">
-        <div className="satyam-container text-center">
-          <h2 className="heading-serif text-5xl md:text-7xl lg:text-[8rem] font-light text-black mb-16 leading-none">
-            Let's create <br/> <span className="italic">the future.</span>
+      {/* 6. FINAL EDITORIAL CTA */}
+      <section className="py-32 bg-[#050708] border-t border-white/10 text-center relative overflow-hidden">
+        <div className="satyam-container relative z-10 max-w-4xl mx-auto space-y-10">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full glass-subtle text-[10px] font-bold uppercase tracking-[0.3em] text-[#00E5FF]">
+            <span>Start a Project</span>
+          </div>
+
+          <h2 className="display-title text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-none">
+            LET'S CREATE <br />
+            <span className="italic font-normal text-white/80">THE FUTURE.</span>
           </h2>
-          <Link to="/booking" className="btn-satyam-black !rounded-full !px-16 !py-8 text-sm">
-            Work with us <ArrowRight className="ml-4 w-6 h-6" />
-          </Link>
+
+          <p className="editorial-subhead text-base sm:text-xl text-white/70 max-w-xl mx-auto leading-relaxed">
+            Ready to capture your special event or record your next hit track? Get in touch with our team today.
+          </p>
+
+          <div>
+            <Link to="/booking">
+              <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                Work With Us
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
+
     </div>
   );
 };

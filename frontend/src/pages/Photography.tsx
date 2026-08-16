@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Image as ImageIcon, Heart, Star, CheckCircle, ArrowRight, Sparkles, Zap, Award, Loader2 } from 'lucide-react';
+import { Camera, CheckCircle, ArrowRight, Sparkles, Zap, Award, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config/api';
+import GlassCard from '../components/ui/GlassCard';
+import SectionHeader from '../components/ui/SectionHeader';
+import Button from '../components/ui/Button';
 
 const Photography = () => {
   const [services, setServices] = useState<any[]>([]);
@@ -10,173 +13,208 @@ const Photography = () => {
 
   useEffect(() => {
     fetch(`${API_URL}/api/services/category/photography`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setServices(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
       });
   }, []);
 
   const fallbackServices = [
-    { 
-      title: "Wedding Photography", 
+    {
+      title: "Wedding Photography",
       description: "Cinematic and traditional coverage of your big day with high-end post-processing.",
       price: "Starts from ₹25,000",
       features: ["Full Day Coverage", "400+ Edited Photos", "Premium Album", "Drone Shots Included"]
+    },
+    {
+      title: "Fashion & Editorial Shoot",
+      description: "High-fashion lookbooks, model portfolios, and brand campaign photography.",
+      price: "Starts from ₹18,000",
+      features: ["Studio or Outdoor", "Professional Retouching", "Styling Guidance", "High-Res Digital Files"]
     }
   ];
 
   const displayServices = services.length > 0 ? services : (loading ? [] : fallbackServices);
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center overflow-hidden pt-20">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=80" 
-            className="w-full h-full object-cover animate-slow-zoom" 
-            alt="Photography Hero" 
+    <div className="bg-[#000000] text-white selection:bg-[#00E5FF] selection:text-black">
+      
+      {/* HERO SECTION */}
+      <section className="relative min-h-[85vh] flex flex-col justify-end overflow-hidden pt-28 pb-16 md:pb-24">
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          <img
+            src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1920&q=85"
+            alt="Photography Hero"
+            className="w-full h-full object-cover opacity-45 animate-slow-zoom"
           />
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
         </div>
-        
-        <div className="satyam-container relative z-10 text-white">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
+
+        <div className="satyam-container relative z-10 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-3xl space-y-6"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="h-[1px] w-12 bg-white/30" />
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Premium Entertainment House</span>
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-subtle text-[10px] font-bold uppercase tracking-[0.3em] text-[#00E5FF]">
+              <Camera className="w-3.5 h-3.5" />
+              <span>Editorial & Portrait Photography</span>
             </div>
-            <h1 className="heading-serif text-5xl md:text-7xl lg:text-8xl mb-8 italic">Capturing <br/>Pure Emotion.</h1>
-            <p className="text-lg md:text-xl text-white/70 font-medium mb-12 leading-relaxed max-w-xl">
+
+            <h1 className="display-hero text-white tracking-tighter">
+              CAPTURING <br />
+              <span className="italic font-normal text-white/80">PURE EMOTION.</span>
+            </h1>
+
+            <p className="editorial-subhead text-base sm:text-xl text-white/70 max-w-xl font-normal leading-relaxed">
               From grand weddings to intimate portraits, we blend technical excellence with artistic vision to freeze your most precious moments in time.
             </p>
-            <div className="flex flex-wrap gap-6">
-              <Link to="/booking" className="btn-satyam-glass">
-                Book a Session <ArrowRight className="ml-3 w-4 h-4" />
+
+            <div className="flex flex-wrap items-center gap-5 pt-2">
+              <Link to="/booking">
+                <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Book a Session
+                </Button>
               </Link>
-              <Link to="/portfolio" className="btn-satyam-outline !text-white !border-white/20 hover:!bg-white hover:!text-black">
-                View Portfolio
+              <Link to="/portfolio">
+                <Button variant="ghost" size="lg">
+                  View Portfolio
+                </Button>
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-32 bg-gray-50">
-        <div className="satyam-container">
-          <div className="text-center mb-24">
-            <h2 className="heading-serif text-5xl mb-6">Why RRE Photography?</h2>
-            <div className="w-20 h-1 bg-black mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              { icon: Zap, title: "High-End Gear", desc: "We use top-tier Sony and Canon full-frame cameras with prime G-Master lenses for unmatched clarity." },
-              { icon: Sparkles, title: "Artistic Editing", desc: "Every photo goes through a meticulous color grading process to match our signature RRE aesthetic." },
-              { icon: Award, title: "Expert Direction", desc: "Our photographers are masters of lighting and posing, ensuring you look your absolute best." }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-                className="bg-white p-12 rounded-[3rem] shadow-premium border border-neutral-50 group hover:bg-black transition-colors duration-500"
-              >
-                <div className="w-16 h-16 bg-neutral-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-white/10 transition-colors">
-                  <feature.icon className="w-8 h-8 text-black group-hover:text-white" />
-                </div>
-                <h3 className="text-2xl font-black mb-4 group-hover:text-white transition-colors">{feature.title}</h3>
-                <p className="text-neutral-400 group-hover:text-neutral-500 transition-colors leading-relaxed">
-                  {feature.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Detail */}
-      <section className="py-32 bg-white">
-        <div className="satyam-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center mb-32">
-            <motion.div 
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl">
-                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" className="w-full h-full object-cover" alt="Wedding Detail" />
-              </div>
-              <div className="absolute -bottom-10 -right-10 bg-black text-white p-12 rounded-[3rem] hidden md:block shadow-2xl">
-                <p className="text-5xl font-black italic mb-2">10k+</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Moments Captured</p>
-              </div>
-            </motion.div>
-
-            <div className="space-y-12">
-              <h2 className="heading-serif text-5xl italic">Bespoke <br/>Photography Packages</h2>
-              <div className="space-y-8">
-                {loading ? (
-                  <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
-                ) : displayServices.map((service, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: 50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    className="p-8 bg-gray-50 rounded-[2.5rem] border border-neutral-100 hover:border-black transition-colors group"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-xl font-black uppercase tracking-tight">{service.title}</h4>
-                      <span className="text-xs font-black text-primary uppercase bg-primary/10 px-4 py-1.5 rounded-full">{service.price}</span>
-                    </div>
-                    <p className="text-neutral-500 mb-6 font-medium">{service.description}</p>
-                    <ul className="grid grid-cols-2 gap-3">
-                      {service.features.map((f: any, j: number) => (
-                        <li key={j} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                          <CheckCircle className="w-3 h-3 text-black" /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-32 bg-black text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-1/2 h-full opacity-20">
-          <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80" className="w-full h-full object-cover" alt="CTA BG" />
-        </div>
+      {/* WHY RRE PHOTOGRAPHY (EDITORIAL CARDS) */}
+      <section className="py-28 bg-[#000000] border-t border-white/10 relative overflow-hidden">
         <div className="satyam-container relative z-10">
-          <div className="max-w-2xl">
-            <h2 className="heading-serif text-6xl mb-8 italic">Ready to create <br/>something timeless?</h2>
-            <p className="text-xl text-neutral-400 mb-12 leading-relaxed">
-              Don't leave your memories to chance. Book the professionals who care about your story as much as you do.
-            </p>
-            <Link to="/booking" className="btn-satyam-white">
-              Start Your Project <ArrowRight className="ml-4 w-5 h-5" />
+          <SectionHeader
+            index="01"
+            category="STANDARDS OF EXCELLENCE"
+            title="WHY RRE PHOTOGRAPHY."
+            description="We combine flagship camera optics with bespoke color grading to deliver iconic imagery."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { icon: Zap, title: "Flagship Optics", desc: "Top-tier Sony and Canon full-frame sensors with prime G-Master lenses for supreme sharpness." },
+              { icon: Sparkles, title: "Artistic Grading", desc: "Every capture undergoes custom color tuning to match our signature cinematic RRE look." },
+              { icon: Award, title: "Master Direction", desc: "Expert lighting setups and guidance so every subject feels natural and confident." }
+            ].map((feature, i) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.15, duration: 0.6 }}
+                >
+                  <GlassCard variant="subtle" className="h-full space-y-6">
+                    <div className="w-12 h-12 rounded-xl bg-[#00E5FF]/10 border border-[#00E5FF]/30 flex items-center justify-center text-[#00E5FF]">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="heading-serif text-2xl font-bold text-white">{feature.title}</h3>
+                    <p className="editorial-subhead text-sm text-white/60 leading-relaxed">{feature.desc}</p>
+                  </GlassCard>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* PACKAGES & DYNAMIC SERVICES */}
+      <section className="py-28 bg-[#050708] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <SectionHeader
+            index="02"
+            category="SERVICE OFFERINGS"
+            title="BESPOKE PACKAGES."
+            description="Tailored photography experiences designed for weddings, editorial campaigns, and events."
+          />
+
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-[#00E5FF]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {displayServices.map((service, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <GlassCard variant="strong" className="space-y-6">
+                    <div className="flex justify-between items-start flex-wrap gap-4 border-b border-white/10 pb-4">
+                      <div>
+                        <h3 className="heading-serif text-2xl font-bold text-white">{service.title}</h3>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">RRE Photography</span>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#00E5FF] px-4 py-2 rounded-full bg-[#00E5FF]/10 border border-[#00E5FF]/30">
+                        {service.price}
+                      </span>
+                    </div>
+
+                    <p className="editorial-subhead text-sm text-white/70 leading-relaxed">
+                      {service.description}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      {service.features.map((f: any, j: number) => (
+                        <div key={j} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
+                          <CheckCircle className="w-3.5 h-3.5 text-[#00E5FF] shrink-0" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4">
+                      <Link to="/booking">
+                        <Button variant="glass" size="md" className="w-full">
+                          Book This Package →
+                        </Button>
+                      </Link>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-32 bg-[#000000] border-t border-white/10 text-center relative overflow-hidden">
+        <div className="satyam-container relative z-10 max-w-3xl mx-auto space-y-8">
+          <h2 className="display-title text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight">
+            READY TO CREATE <br />
+            <span className="italic font-normal text-white/80">SOMETHING TIMELESS?</span>
+          </h2>
+          <p className="editorial-subhead text-base sm:text-lg text-white/70">
+            Book our photography team today to preserve your story with cinematic perfection.
+          </p>
+          <div>
+            <Link to="/booking">
+              <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                Start Your Project
+              </Button>
             </Link>
           </div>
         </div>
       </section>
+
     </div>
   );
 };

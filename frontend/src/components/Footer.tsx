@@ -1,60 +1,77 @@
 import React from 'react';
-import { Facebook, Instagram, Youtube, Twitter, Mail, MapPin, Phone, ArrowUp } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Twitter, Mail, MapPin, Phone, ArrowUp, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const Footer = () => {
+const Footer: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <footer id="contact" className="bg-white pt-16 sm:pt-24 pb-8 sm:pb-12 relative overflow-hidden">
-      {/* Decorative element */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+    <footer id="contact" className="bg-[#050708] border-t border-white/10 pt-20 pb-12 relative overflow-hidden text-white">
+      {/* Vantage subtle dark teal glow background */}
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#00E5FF]/5 rounded-full blur-[150px] pointer-events-none" />
       
       <div className="satyam-container relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-16 mb-12 sm:mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-20">
 
-          {/* Brand — full width on mobile */}
-          <div className="col-span-2 lg:col-span-1">
-            <div className="flex items-center mb-6 sm:mb-10">
-              <span className="text-2xl sm:text-3xl font-black text-black tracking-tighter italic">RRE<span className="text-primary">.</span></span>
-            </div>
-            <p className="text-neutral-400 mb-6 sm:mb-10 leading-relaxed font-medium text-sm max-w-xs">
-              India's premier AI-integrated media house. Redefining how memories are captured, stories are told, and music is made.
+          {/* Brand Column */}
+          <div className="space-y-6">
+            <Link to="/" className="flex flex-col inline-block group">
+              <span className="text-2xl font-black tracking-[0.35em] text-white leading-none group-hover:text-[#00E5FF] transition-colors">
+                RAJATRAJ
+              </span>
+              <span className="text-[0.6rem] font-extrabold tracking-[0.45em] text-white/50 group-hover:text-white transition-colors uppercase mt-1">
+                ENTERTAINMENT
+              </span>
+            </Link>
+            
+            <p className="text-sm font-normal text-white/60 leading-relaxed max-w-xs">
+              India's premier AI-integrated media house. Redefining how memories are captured, stories are told, and music is created.
             </p>
-            <div className="flex space-x-3 sm:space-x-4">
+            
+            <div className="flex items-center space-x-3 pt-2">
               {[
                 { icon: Instagram, href: "https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==" },
                 { icon: Youtube, href: "#" },
                 { icon: Facebook, href: "#" },
                 { icon: Twitter, href: "#" }
-              ].map((social, i) => (
-                <a 
-                  key={i}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer" 
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-secondary flex items-center justify-center text-neutral-400 hover:bg-black hover:text-white hover:shadow-2xl transition-all duration-500"
-                >
-                  <social.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                </a>
-              ))}
+              ].map((social, i) => {
+                const Icon = social.icon;
+                return (
+                  <a 
+                    key={i}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer" 
+                    className="w-10 h-10 rounded-xl glass-subtle flex items-center justify-center text-white/70 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all duration-300"
+                    aria-label="Social Link"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
-          {/* Company links */}
+          {/* Navigation Links */}
           <div>
-            <h4 className="text-black font-black text-[10px] mb-6 sm:mb-10 uppercase tracking-[0.4em]">Company</h4>
-            <ul className="space-y-4 sm:space-y-6">
+            <h4 className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-[#00E5FF] mb-8">
+              Company
+            </h4>
+            <ul className="space-y-4">
               {[
                 { label: 'Our Story', path: '/about' },
                 { label: 'Talent Hunt', path: '/talent-hunt' },
                 { label: 'AI Hub', path: '/ai-hub' },
-                { label: 'Booking', path: '/booking' }
+                { label: 'Book Project', path: '/booking' },
+                { label: 'Client Portal', path: '/dashboard' }
               ].map((link) => (
                 <li key={link.label}>
-                  <Link to={link.path} className="text-neutral-500 hover:text-black transition-colors font-black uppercase text-[10px] tracking-widest">
+                  <Link 
+                    to={link.path} 
+                    className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -62,18 +79,24 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services links */}
+          {/* Services Links */}
           <div>
-            <h4 className="text-black font-black text-[10px] mb-6 sm:mb-10 uppercase tracking-[0.4em]">Expertise</h4>
-            <ul className="space-y-4 sm:space-y-6">
+            <h4 className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-[#00E5FF] mb-8">
+              Expertise
+            </h4>
+            <ul className="space-y-4">
               {[
                 { label: 'Photography', path: '/photography' },
                 { label: 'Videography', path: '/videography' },
                 { label: 'Music Studio', path: '/audio-recording' },
-                { label: 'Live Stream', path: '/live-streaming' }
+                { label: 'Music Production', path: '/music-production' },
+                { label: 'Live Streaming', path: '/live-streaming' }
               ].map((item) => (
                 <li key={item.label}>
-                  <Link to={item.path} className="text-neutral-500 hover:text-black transition-colors font-black uppercase text-[10px] tracking-widest">
+                  <Link 
+                    to={item.path} 
+                    className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors"
+                  >
                     {item.label}
                   </Link>
                 </li>
@@ -81,44 +104,59 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact info */}
-          <div className="col-span-2 lg:col-span-1">
-            <h4 className="text-black font-black text-[10px] mb-6 sm:mb-10 uppercase tracking-[0.4em]">Connect</h4>
-            <ul className="space-y-4 sm:space-y-8">
-              <li className="flex items-start gap-4 sm:gap-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-secondary flex items-center justify-center text-black shrink-0 mt-0.5">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          {/* Contact Details */}
+          <div>
+            <h4 className="text-[10px] font-extrabold uppercase tracking-[0.35em] text-[#00E5FF] mb-8">
+              Connect
+            </h4>
+            <ul className="space-y-5">
+              <li className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg glass-subtle flex items-center justify-center text-[#00E5FF] shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4" />
                 </div>
-                <span className="text-neutral-500 text-sm font-medium leading-relaxed">Near Dildarnagar Railway Station,<br/>Behind Sayar Maa Mandir,<br/>PIN — 232326</span>
+                <span className="text-xs font-medium text-white/60 leading-relaxed">
+                  Near Dildarnagar Railway Station,<br />Behind Sayar Maa Mandir,<br />PIN — 232326
+                </span>
               </li>
-              <li className="flex items-center gap-4 sm:gap-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-secondary flex items-center justify-center text-black shrink-0">
-                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <li className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg glass-subtle flex items-center justify-center text-[#00E5FF] shrink-0">
+                  <Phone className="w-4 h-4" />
                 </div>
-                <a href="tel:+918898134049" className="text-neutral-500 text-sm font-medium hover:text-black transition-colors">+91 88981 34049</a>
+                <a href="tel:+918898134049" className="text-xs font-medium text-white/60 hover:text-white transition-colors">
+                  +91 88981 34049
+                </a>
               </li>
-              <li className="flex items-center gap-4 sm:gap-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-secondary flex items-center justify-center text-black shrink-0">
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <li className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg glass-subtle flex items-center justify-center text-[#00E5FF] shrink-0">
+                  <Mail className="w-4 h-4" />
                 </div>
-                <a href="mailto:rajatrajentertainment@gmail.com" className="text-neutral-500 text-sm font-medium hover:text-black transition-colors break-all sm:break-normal">rajatrajentertainment@gmail.com</a>
+                <a href="mailto:rajatrajentertainment@gmail.com" className="text-xs font-medium text-white/60 hover:text-white transition-colors break-all">
+                  rajatrajentertainment@gmail.com
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="pt-6 sm:pt-12 border-t border-neutral-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-300">
+        {/* Footer Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40 text-center sm:text-left">
             © 2026 Rajat Raj Entertainment. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 sm:gap-8">
-            <Link to="/admin/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-300 hover:text-black transition-colors">Admin Access</Link>
+          
+          <div className="flex items-center space-x-6">
+            <Link 
+              to="/admin/login" 
+              className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40 hover:text-white transition-colors"
+            >
+              Admin Access
+            </Link>
             <button 
               onClick={scrollToTop}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-neutral-100 flex items-center justify-center text-neutral-300 hover:border-black hover:text-black transition-all"
+              className="w-10 h-10 rounded-xl glass-subtle flex items-center justify-center text-white/70 hover:text-white hover:border-white/30 hover:bg-white/10 transition-all"
+              aria-label="Scroll to top"
             >
-              <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ArrowUp className="w-4 h-4" />
             </button>
           </div>
         </div>

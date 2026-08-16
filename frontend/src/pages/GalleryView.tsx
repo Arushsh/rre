@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Download, 
-  Share2, 
-  Lock, 
-  ChevronLeft, 
-  Calendar, 
-  MapPin, 
-  User, 
-  Image as ImageIcon, 
+import {
+  Download,
+  Share2,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  MapPin,
+  User,
+  Image as ImageIcon,
   Video,
   QrCode,
   X,
   ArrowRight,
   Maximize2,
   CreditCard,
-  CheckCircle
+  CheckCircle,
+  Loader2,
+  Play
 } from 'lucide-react';
 import { API_URL, RAZORPAY_KEY_ID } from '../config/api';
 import toast from 'react-hot-toast';
@@ -28,9 +31,9 @@ const GalleryView = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedMedia, setSelectedMedia] = useState<any>(null);
-  
-  // Payment State
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // ── PRESERVED: Payment State ──
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -40,6 +43,7 @@ const GalleryView = () => {
   const [userPhone, setUserPhone] = useState('');
   const [hasPaid, setHasPaid] = useState(false);
 
+  // ── PRESERVED: Download handler ──
   const handleDownload = async (url: string) => {
     try {
       const response = await fetch(url);
@@ -59,7 +63,7 @@ const GalleryView = () => {
     }
   };
 
-  // Load Razorpay Script
+  // ── PRESERVED: Load Razorpay Script ──
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       const script = document.createElement('script');
@@ -70,25 +74,22 @@ const GalleryView = () => {
     });
   };
 
-  // Handle Payment
+  // ── PRESERVED: Handle Payment ──
   const handlePayment = async (amount: number, type: 'single' | 'full') => {
     if (!hasPaid) {
       setPaymentAmount(amount);
       setIsPaymentModalOpen(true);
       return;
     }
-    
-    // Proceed to download if already paid
     if (type === 'full') {
       await handleDownloadFullSet();
     }
   };
 
-  // Process Razorpay Payment
+  // ── PRESERVED: Process Razorpay Payment ──
   const processPayment = async () => {
     setPaymentLoading(true);
     try {
-      // Load script
       const res = await loadRazorpayScript();
       if (!res) {
         toast.error('Razorpay SDK failed to load');
@@ -96,14 +97,13 @@ const GalleryView = () => {
         return;
       }
 
-      // Create order
       const orderRes = await fetch(`${API_URL}/api/payments/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: paymentAmount,
           galleryId: gallery._id,
-          userId: '66b8f0e356789abc12345678', // Dummy user ID for demo (replace with actual user)
+          userId: '66b8f0e356789abc12345678',
           customerName: userName,
           customerEmail: userEmail,
           customerPhone: userPhone
@@ -117,7 +117,6 @@ const GalleryView = () => {
         return;
       }
 
-      // Open Razorpay Checkout
       const options = {
         key: RAZORPAY_KEY_ID,
         amount: orderData.order.amount,
@@ -127,7 +126,6 @@ const GalleryView = () => {
         image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=200&q=60',
         order_id: orderData.order.id,
         handler: async function (response: any) {
-          // Verify payment
           const verifyRes = await fetch(`${API_URL}/api/payments/verify-payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -146,22 +144,13 @@ const GalleryView = () => {
             toast.success('Payment Successful! You can now download photos');
           }
         },
-        prefill: {
-          name: userName,
-          email: userEmail,
-          contact: userPhone
-        },
-        notes: {
-          gallery: gallery.title
-        },
-        theme: {
-          color: '#f472b6'
-        }
+        prefill: { name: userName, email: userEmail, contact: userPhone },
+        notes: { gallery: gallery.title },
+        theme: { color: '#f472b6' }
       };
 
       const paymentObject = new (window as any).Razorpay(options);
       paymentObject.open();
-
     } catch (err) {
       console.error('Payment error:', err);
       toast.error('Payment failed');
@@ -170,20 +159,21 @@ const GalleryView = () => {
     }
   };
 
+  // ── PRESERVED: Download full set ──
   const handleDownloadFullSet = async () => {
     if (!hasPaid) {
-      handlePayment(2500, 'full'); // ₹2500 for full set download
+      handlePayment(2500, 'full');
       return;
     }
     if (!gallery.media || gallery.media.length === 0) return;
     toast.success('Starting download of all photos...');
     for (let i = 0; i < gallery.media.length; i++) {
       await handleDownload(gallery.media[i].url);
-      // Small delay to avoid browser blocking multiple downloads
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   };
 
+  // ── PRESERVED: Fetch gallery by slug ──
   useEffect(() => {
     fetch(`${API_URL}/api/galleries/${slug}`)
       .then(res => res.json())
@@ -197,6 +187,7 @@ const GalleryView = () => {
       });
   }, [slug]);
 
+  // ── PRESERVED: Password verify handler ──
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -217,6 +208,7 @@ const GalleryView = () => {
     }
   };
 
+  // ── PRESERVED: Share handler ──
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const text = `Check out my photos from ${gallery.title} at Rajat Raj Entertainment!`;
@@ -230,230 +222,424 @@ const GalleryView = () => {
     }
   };
 
+  // ── Lightbox keyboard nav ──
+  const mediaItems = gallery?.media || [];
+  const goPrev = useCallback(() => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((lightboxIndex - 1 + mediaItems.length) % mediaItems.length);
+  }, [lightboxIndex, mediaItems.length]);
+
+  const goNext = useCallback(() => {
+    if (lightboxIndex === null) return;
+    setLightboxIndex((lightboxIndex + 1) % mediaItems.length);
+  }, [lightboxIndex, mediaItems.length]);
+
+  const openLightbox = (idx: number) => {
+    setLightboxIndex(idx);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+    document.body.style.overflow = '';
+  };
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') goNext();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightboxIndex, goPrev, goNext]);
+
+  // ── LOADING STATE ──
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      <div className="w-16 h-16 border-4 border-neutral-100 border-t-primary rounded-full animate-spin mb-8" />
-      <p className="heading-serif text-2xl italic text-neutral-300">Unlocking gallery...</p>
-    </div>
-  );
-  
-  if (!gallery) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-6">
-      <h2 className="heading-serif text-4xl italic text-neutral-300 mb-8">Gallery not found.</h2>
-      <Link to="/gallery" className="btn-satyam-outline !rounded-full">Return to Portal</Link>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white gap-6">
+      <Loader2 className="w-10 h-10 animate-spin text-white/30" />
+      <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">Unlocking Gallery…</p>
     </div>
   );
 
+  // ── NOT FOUND ──
+  if (!gallery) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#000000] text-white text-center p-6 gap-6">
+      <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">Gallery Not Found</p>
+      <h2 className="heading-serif text-3xl font-bold text-white/60">We couldn't find this gallery.</h2>
+      <Link to="/gallery" className="inline-flex items-center gap-2 px-6 py-3 glass-subtle border border-white/20 rounded-full text-[11px] font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/40 transition-all">
+        <ChevronLeft className="w-4 h-4" /> Return to Portal
+      </Link>
+    </div>
+  );
+
+  // ── ACCESS CODE SCREEN ──
   if (!isVerified) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center px-6">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center px-6 relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 pointer-events-none select-none">
+          {gallery.coverImage && (
+            <img src={gallery.coverImage} alt="" className="w-full h-full object-cover opacity-10 scale-105 blur-sm" />
+          )}
+          <div className="absolute inset-0 bg-black/80" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white rounded-[4rem] p-10 md:p-16 shadow-premium text-center border border-neutral-100"
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 max-w-md w-full glass-strong border border-white/15 rounded-3xl p-10 md:p-14 text-center text-white space-y-8"
         >
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-10">
-            <Lock className="w-10 h-10 text-primary" />
+          {/* Lock icon */}
+          <div className="w-14 h-14 rounded-2xl bg-white/8 border border-white/20 flex items-center justify-center mx-auto">
+            <Lock className="w-7 h-7 text-white/60" />
           </div>
-          <h1 className="heading-serif text-3xl italic text-black mb-4">{gallery.title}</h1>
-          <p className="text-neutral-400 font-medium mb-12">This is a private collection. Please enter your secure access code.</p>
-          
-          <form onSubmit={handleVerify} className="space-y-6">
-            <input 
-              type="password" 
+
+          {/* Title */}
+          <div className="space-y-2">
+            <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/35 block">Private Gallery</span>
+            <h1 className="heading-serif text-2xl md:text-3xl font-bold text-white leading-tight">{gallery.title}</h1>
+            <p className="text-sm text-white/45 font-normal leading-relaxed">
+              This is a private collection. Enter your secure access code to unlock.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleVerify} className="space-y-4">
+            <input
+              type="password"
               placeholder="ACCESS CODE"
-              className="w-full px-8 py-6 bg-secondary rounded-2xl border-none focus:ring-2 focus:ring-primary/20 font-black text-center tracking-[0.5em] text-lg uppercase"
+              aria-label="Access code"
+              className="w-full px-6 py-4 bg-white/5 border border-white/15 focus:border-white/35 focus:outline-none rounded-2xl text-white text-center tracking-[0.5em] text-base font-bold uppercase placeholder-white/20 transition-colors"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {error && <p className="text-red-500 text-xs font-black uppercase tracking-widest">{error}</p>}
-            <button type="submit" className="w-full btn-satyam-black !rounded-2xl !py-6">
-              Access Gallery <ArrowRight className="ml-3 w-5 h-5" />
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-red-400 text-[10px] font-bold uppercase tracking-widest"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+            <button
+              type="submit"
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-2xl hover:bg-white/90 transition-colors"
+            >
+              Access Gallery <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-          
-          <Link to="/gallery" className="inline-flex items-center gap-3 mt-12 text-neutral-300 hover:text-black font-black uppercase text-[10px] tracking-widest transition-all">
-            <ChevronLeft className="w-5 h-5" /> Back to Portal
+
+          <Link
+            to="/gallery"
+            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Portal
           </Link>
         </motion.div>
       </div>
     );
   }
 
+  // ── GALLERY VIEW (UNLOCKED) ──
+  const activeMedia = lightboxIndex !== null ? mediaItems[lightboxIndex] : null;
+
   return (
-    <div className="min-h-screen bg-white pt-32 pb-20">
-      <div className="satyam-container">
-        {/* Gallery Header */}
-        <div className="mb-20">
-          <Link to="/gallery" className="inline-flex items-center gap-3 text-neutral-300 hover:text-black font-black uppercase text-[10px] tracking-widest transition-all mb-12">
-            <ChevronLeft className="w-5 h-5" /> Back to Portal
+    <div className="min-h-screen bg-[#000000] text-white pt-20">
+
+      {/* ── GALLERY HEADER ── */}
+      <section className="py-12 md:py-16 border-b border-white/10">
+        <div className="satyam-container">
+          <Link
+            to="/gallery"
+            className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors mb-10"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Portal
           </Link>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10">
-            <div>
-              <h1 className="heading-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic mb-8 leading-tight">{gallery.title}</h1>
-              <div className="flex flex-wrap gap-4 md:gap-8 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">
-                <span className="flex items-center gap-3"><MapPin className="w-4 h-4" /> {gallery.location}</span>
-                <span className="flex items-center gap-3"><Calendar className="w-4 h-4" /> {new Date(gallery.eventDate).toLocaleDateString()}</span>
-                <span className="flex items-center gap-3"><User className="w-4 h-4" /> {gallery.photographer}</span>
+
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
+            <div className="space-y-4">
+              <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/35">Private Collection</span>
+              <h1 className="heading-serif text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight">
+                {gallery.title}
+              </h1>
+              <div className="flex flex-wrap gap-6 text-[10px] font-bold uppercase tracking-[0.25em] text-white/35">
+                {gallery.location && (
+                  <span className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> {gallery.location}</span>
+                )}
+                {gallery.eventDate && (
+                  <span className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> {new Date(gallery.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                )}
+                {gallery.photographer && (
+                  <span className="flex items-center gap-2"><User className="w-3.5 h-3.5" /> {gallery.photographer}</span>
+                )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-4 w-full lg:w-auto">
-              <button onClick={handleDownloadFullSet} className="btn-satyam-black !rounded-2xl !py-4 flex-grow lg:flex-grow-0">
-                <Download className="w-4 h-4 mr-3" /> Download Full Set
+
+            <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+              <button
+                onClick={handleDownloadFullSet}
+                className="flex items-center gap-2 px-6 py-3 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-full hover:bg-white/90 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {hasPaid ? 'Download All' : 'Download Full Set'}
               </button>
-              <button className="p-4 bg-secondary rounded-2xl border border-neutral-100 hover:bg-black hover:text-white transition-all">
-                <QrCode className="w-6 h-6" />
+              <button
+                onClick={() => handleShare('copy')}
+                aria-label="Share gallery"
+                className="w-11 h-11 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/40 transition-all"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              <button
+                aria-label="QR code"
+                className="w-11 h-11 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/40 transition-all"
+              >
+                <QrCode className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Media Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-          {gallery.media?.map((item: any, i: number) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => setSelectedMedia(item)}
-              className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden cursor-zoom-in group bg-secondary"
-            >
-              <img src={item.url || item} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={`Capture ${i}`} />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6">
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 transform scale-0 group-hover:scale-100 transition-all duration-500">
-                  <Maximize2 className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+      {/* ── MEDIA COUNT ── */}
+      <div className="satyam-container py-6 border-b border-white/10">
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
+          {mediaItems.length} {mediaItems.length === 1 ? 'Capture' : 'Captures'}
+        </p>
       </div>
 
-      {/* Lightbox */}
+      {/* ── MEDIA GRID ── */}
+      <section className="py-10 md:py-14">
+        <div className="satyam-container">
+          {mediaItems.length === 0 ? (
+            <div className="py-32 text-center space-y-4 border border-white/10 rounded-3xl glass-subtle">
+              <ImageIcon className="w-12 h-12 text-white/20 mx-auto" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">No Media Yet</p>
+              <p className="text-white/20 text-sm">This gallery is empty.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
+              {mediaItems.map((item: any, i: number) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: Math.min(i * 0.03, 0.5) }}
+                  onClick={() => openLightbox(i)}
+                  className="relative aspect-square rounded-xl overflow-hidden cursor-zoom-in group bg-neutral-900"
+                >
+                  {item.type === 'video' ? (
+                    <div className="w-full h-full flex items-center justify-center bg-neutral-900">
+                      <Play className="w-8 h-8 text-white/40" />
+                    </div>
+                  ) : (
+                    <img
+                      src={item.url || item}
+                      alt={`Capture ${i + 1}`}
+                      loading="lazy"
+                      className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-all duration-500 group-hover:scale-[1.04]"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                    <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── CINEMATIC LIGHTBOX ── */}
       <AnimatePresence>
-        {selectedMedia && (
+        {activeMedia && lightboxIndex !== null && (
           <motion.div
+            key="gallery-lightbox"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 md:p-20"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[200] bg-black/97 backdrop-blur-2xl flex flex-col items-center justify-center"
+            onClick={closeLightbox}
           >
-            <button onClick={() => setSelectedMedia(null)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors">
-              <X className="w-10 h-10" />
+            {/* Close */}
+            <button
+              onClick={closeLightbox}
+              aria-label="Close lightbox"
+              className="absolute top-5 right-5 w-10 h-10 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/50 hover:text-white z-10 transition-colors"
+            >
+              <X className="w-5 h-5" />
             </button>
-            
-            <div className="max-w-6xl w-full flex flex-col items-center">
-              <div className="relative w-full aspect-[4/5] md:aspect-auto md:h-[70vh] rounded-[3rem] overflow-hidden shadow-2xl bg-neutral-900 mb-10">
-                <img src={selectedMedia.url || selectedMedia} className="w-full h-full object-contain" alt="Selected Capture" />
-              </div>
-              
-              <div className="flex gap-6">
-                <button 
-                  onClick={() => handleDownload(selectedMedia.url || selectedMedia)}
-                  className="btn-satyam-glass !border-primary text-white !rounded-full !px-12"
-                >
-                  <Download className="w-4 h-4 mr-3" /> Download High-Res
-                </button>
-                <button 
-                  onClick={() => handleShare('whatsapp')}
-                  className="p-5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-all text-white"
-                >
-                  <Share2 className="w-6 h-6" />
-                </button>
-              </div>
+
+            {/* Counter */}
+            <div className="absolute top-5 left-5 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25 z-10">
+              {(lightboxIndex + 1).toString().padStart(2, '0')} / {mediaItems.length.toString().padStart(2, '0')}
+            </div>
+
+            {/* Media */}
+            <motion.div
+              key={lightboxIndex}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative max-w-5xl w-full max-h-[75vh] px-14 md:px-24"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {activeMedia.type === 'video' ? (
+                <video
+                  src={activeMedia.url || activeMedia}
+                  controls
+                  className="w-full max-h-[70vh] rounded-2xl shadow-2xl object-contain bg-black"
+                />
+              ) : (
+                <img
+                  src={activeMedia.url || activeMedia}
+                  alt={`Capture ${lightboxIndex + 1}`}
+                  className="w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl"
+                />
+              )}
+            </motion.div>
+
+            {/* Lightbox actions */}
+            <div
+              className="mt-6 flex items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => handleDownload(activeMedia.url || activeMedia)}
+                className="flex items-center gap-2 px-6 py-2.5 glass-subtle border border-white/20 rounded-full text-[11px] font-bold uppercase tracking-widest text-white/70 hover:text-white hover:border-white/40 transition-all"
+              >
+                <Download className="w-3.5 h-3.5" /> Download
+              </button>
+              <button
+                onClick={() => handleShare('whatsapp')}
+                aria-label="Share on WhatsApp"
+                className="w-9 h-9 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/40 hover:text-white hover:border-white/40 transition-all"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Prev / Next */}
+            <div className="absolute inset-y-0 left-2 md:left-5 flex items-center" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={goPrev}
+                aria-label="Previous image"
+                className="w-10 h-10 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/40 transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="absolute inset-y-0 right-2 md:right-5 flex items-center" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={goNext}
+                aria-label="Next image"
+                className="w-10 h-10 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/40 transition-all"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Payment Modal */}
+      {/* ── PAYMENT MODAL (presentation redesigned, all business logic preserved) ── */}
       <AnimatePresence>
         {isPaymentModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              className="bg-white rounded-[3rem] p-8 md:p-12 max-w-lg w-full shadow-2xl"
+              initial={{ y: 40, opacity: 0, scale: 0.97 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-strong border border-white/15 rounded-3xl p-8 md:p-12 max-w-lg w-full text-white relative"
             >
               <button
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="absolute top-6 right-6 p-2 hover:bg-secondary rounded-full transition-all"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full glass-subtle border border-white/20 flex items-center justify-center text-white/40 hover:text-white transition-all"
               >
-                <X className="w-6 h-6" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="text-center mb-10">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CreditCard className="w-10 h-10 text-primary" />
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-white/8 border border-white/15 flex items-center justify-center mx-auto mb-5">
+                  <CreditCard className="w-7 h-7 text-white/60" />
                 </div>
-                <h2 className="heading-serif text-3xl md:text-4xl mb-3 italic">Complete Payment</h2>
-                <p className="text-neutral-600 font-medium">To download the full photo collection</p>
+                <h2 className="heading-serif text-2xl md:text-3xl font-bold text-white mb-2">Complete Payment</h2>
+                <p className="text-white/45 text-sm">To download the full photo collection</p>
               </div>
 
-              <div className="bg-secondary/50 rounded-[2rem] p-6 mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-neutral-600 font-bold uppercase tracking-wide text-sm">Amount</span>
-                  <span className="text-3xl font-black text-black">₹{paymentAmount}</span>
+              <div className="glass-subtle border border-white/10 rounded-2xl p-5 mb-7">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Amount</span>
+                  <span className="text-3xl font-black text-white">₹{paymentAmount}</span>
                 </div>
-                <p className="text-neutral-500 text-sm">Includes full resolution images + watermark-free copies</p>
+                <p className="text-white/35 text-xs">Full resolution + watermark-free copies</p>
               </div>
 
-              <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); processPayment(); }}>
+              <form
+                className="space-y-4"
+                onSubmit={(e) => { e.preventDefault(); processPayment(); }}
+              >
                 <input
                   type="text"
                   placeholder="Full Name"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  className="w-full px-6 py-5 bg-secondary rounded-2xl border-2 border-transparent focus:border-primary outline-none font-bold"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/15 focus:border-white/35 focus:outline-none rounded-xl text-white placeholder-white/25 font-medium transition-colors"
                   required
                 />
-
                 <input
                   type="email"
                   placeholder="Email Address"
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
-                  className="w-full px-6 py-5 bg-secondary rounded-2xl border-2 border-transparent focus:border-primary outline-none font-bold"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/15 focus:border-white/35 focus:outline-none rounded-xl text-white placeholder-white/25 font-medium transition-colors"
                   required
                 />
-
                 <input
                   type="tel"
                   placeholder="Phone Number"
                   value={userPhone}
                   onChange={(e) => setUserPhone(e.target.value)}
-                  className="w-full px-6 py-5 bg-secondary rounded-2xl border-2 border-transparent focus:border-primary outline-none font-bold"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/15 focus:border-white/35 focus:outline-none rounded-xl text-white placeholder-white/25 font-medium transition-colors"
                   required
                 />
-
                 <button
                   type="submit"
                   disabled={paymentLoading}
-                  className="w-full btn-satyam-black !rounded-2xl !py-6 flex items-center justify-center gap-3"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {paymentLoading ? (
-                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <CheckCircle className="w-6 h-6" />
+                    <CheckCircle className="w-5 h-5" />
                   )}
-                  {paymentLoading ? 'Processing...' : 'Pay Now'}
+                  {paymentLoading ? 'Processing…' : 'Pay Now'}
                 </button>
               </form>
 
-              <p className="text-center text-neutral-400 text-xs mt-8 uppercase tracking-widest">
+              <p className="text-center text-white/25 text-[10px] uppercase tracking-widest mt-6">
                 Secure payment powered by Razorpay
               </p>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 };

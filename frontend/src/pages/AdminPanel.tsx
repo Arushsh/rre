@@ -38,10 +38,24 @@ import {
   Star,
   Users2,
   CreditCard,
-  Clock
+  Clock,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Eye
 } from 'lucide-react';
 import { API_URL } from '../config/api';
 import toast from 'react-hot-toast';
+
+const TABS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'galleries', label: 'Galleries', icon: FolderOpen },
+  { id: 'clients', label: 'Clients', icon: Users2 },
+  { id: 'services', label: 'Services', icon: Settings },
+  { id: 'team', label: 'Team', icon: Users },
+  { id: 'bookings', label: 'Bookings', icon: Calendar },
+  { id: 'payments', label: 'Payments', icon: CreditCard },
+];
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -101,6 +115,7 @@ const AdminPanel = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [editingGallery, setEditingGallery] = useState<any | null>(null);
 
+  // ── PRESERVED: Authentication verification & polling ──
   useEffect(() => {
     const auth = localStorage.getItem('isAdminAuthenticated');
     if (auth !== 'true') {
@@ -113,7 +128,13 @@ const AdminPanel = () => {
       const interval = setInterval(() => {
         fetchData(true);
       }, 10000);
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        if (videoRef.current?.srcObject) {
+          const stream = videoRef.current.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+        }
+      };
     }
   }, [navigate]);
 
@@ -122,6 +143,7 @@ const AdminPanel = () => {
     navigate('/admin/login');
   };
 
+  // ── PRESERVED: Fetch data endpoints ──
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
@@ -152,6 +174,7 @@ const AdminPanel = () => {
     }
   };
 
+  // ── PRESERVED: File Upload with real-time XHR progress tracking ──
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, gallerySlug: string | null = null) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -247,6 +270,7 @@ const AdminPanel = () => {
     setShowSuccessModal(true);
   };
 
+  // ── PRESERVED: QR Canvas Generator ──
   const handleDownloadQR = () => {
     if (!lastCreatedGallery) return;
     
@@ -309,6 +333,7 @@ const AdminPanel = () => {
     };
   };
 
+  // ── PRESERVED: Gallery creation ──
   const handleCreateGallery = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -327,6 +352,7 @@ const AdminPanel = () => {
         setNewGallery({
           title: '', slug: '', eventDate: new Date().toISOString().split('T')[0], location: '', photographer: 'RRE Team', password: '', coverImage: '', media: [], revenue: 0, isPublic: false
         });
+        toast.success('Gallery created successfully!');
       } else {
         const err = await res.json();
         toast.error(`Error: ${err.message || 'Failed to create gallery'}`);
@@ -343,6 +369,7 @@ const AdminPanel = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         setNewGallery(prev => ({ ...prev, location: "Live Event Location (Mumbai)" }));
+        toast.success('Location detected');
       }, () => {
         toast.error("Location access denied.");
       });
@@ -350,6 +377,10 @@ const AdminPanel = () => {
       toast.error("Geolocation not supported.");
     }
   };
+
+  // ── PRESERVED: Camera handler ──
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const openCamera = async (gallerySlug: string | null = null) => {
     setActiveGalleryForCamera(gallerySlug);
@@ -364,9 +395,6 @@ const AdminPanel = () => {
       setIsCameraOpen(false);
     }
   };
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const capturePhoto = async () => {
     if (videoRef.current && canvasRef.current) {
@@ -406,6 +434,7 @@ const AdminPanel = () => {
     }
   };
 
+  // ── PRESERVED: Client management ──
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -418,6 +447,7 @@ const AdminPanel = () => {
         fetchData();
         setIsAddingClient(false);
         setNewClient({ name: '', email: '', password: '' });
+        toast.success('Client registered!');
       }
     } catch (err) {
       console.error(err);
@@ -433,13 +463,14 @@ const AdminPanel = () => {
       });
       if (res.ok) {
         fetchData();
-        toast.success('Assigned!');
+        toast.success('Event assigned!');
       }
     } catch (err) {
       console.error(err);
     }
   };
 
+  // ── PRESERVED: Services CRUD ──
   const handleCreateService = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -453,6 +484,7 @@ const AdminPanel = () => {
         fetchData();
         setNewService({ category: 'photography', title: '', description: '', price: '', features: [''] });
         setIsEditingService(false);
+        toast.success('Service saved!');
       }
     } catch (err) {
       console.error(err);
@@ -467,12 +499,16 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/api/services/${id}`, {
         method: 'DELETE'
       });
-      if (res.ok) fetchData();
+      if (res.ok) {
+        fetchData();
+        toast.success('Service deleted');
+      }
     } catch (err) {
       console.error(err);
     }
   };
 
+  // ── PRESERVED: Team CRUD ──
   const handleCreateTeamMember = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -497,6 +533,7 @@ const AdminPanel = () => {
         setTeamPhotoPreview('');
         setIsEditingTeam(false);
         setEditingTeamMemberId(null);
+        toast.success(editingTeamMemberId ? 'Team member updated' : 'Team member added');
       }
     } catch (err) {
       console.error(err);
@@ -511,7 +548,10 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/api/team/${id}`, {
         method: 'DELETE'
       });
-      if (res.ok) fetchData();
+      if (res.ok) {
+        fetchData();
+        toast.success('Team member removed');
+      }
     } catch (err) {
       console.error(err);
     }
@@ -524,6 +564,7 @@ const AdminPanel = () => {
     setIsEditingTeam(true);
   };
 
+  // ── PRESERVED: Gallery delete and update ──
   const handleDeleteGallery = async (id: string) => {
     if (!confirm('Delete this gallery? This cannot be undone.')) return;
     try {
@@ -568,143 +609,219 @@ const AdminPanel = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-28 pb-24">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-14 gap-8">
-          <div>
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 text-primary mb-6 shadow-sm">
-              <Settings className="w-5 h-5 mr-3" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em]">RRE ADMIN</span>
+    <div className="min-h-screen bg-[#000000] text-white pt-24 pb-20">
+      <div className="satyam-container space-y-8">
+
+        {/* ── ADMIN HEADER ── */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end pb-8 border-b border-white/10 gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-subtle border border-white/15 text-[10px] font-bold uppercase tracking-[0.35em] text-white/60">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>RRE Operations Control</span>
             </div>
-            <h1 className="heading-serif text-4xl sm:text-6xl mb-4 italic">Control Center</h1>
-            <p className="text-gray-500 font-medium tracking-widest text-[10px] uppercase">Manage your studio operations</p>
+            <h1 className="heading-serif text-3xl sm:text-5xl font-bold text-white tracking-tight">
+              Management Console.
+            </h1>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/40">
+              Live studio oversight & resources
+            </p>
           </div>
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <button onClick={handleLogout} className="p-4 sm:p-5 bg-white rounded-[1.5rem] border border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all group shadow-sm">
-              <LogOut className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110" />
-            </button>
+
+          <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsCreating(!isCreating)} 
-              className="btn-quote flex items-center gap-3 !px-8 !py-5 !text-sm"
+              className="flex items-center gap-2 px-5 py-3 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90 transition-colors shadow-lg"
             >
-              {isCreating ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-              <span className="hidden sm:inline font-black">Create New Gallery</span>
-              <span className="sm:hidden font-black">New</span>
+              {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{isCreating ? 'Cancel' : 'New Gallery'}</span>
+            </button>
+            <button 
+              onClick={handleLogout} 
+              aria-label="Log Out"
+              className="p-3 glass-subtle border border-white/15 rounded-xl text-white/40 hover:text-red-400 hover:border-red-500/30 transition-all"
+            >
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="flex bg-white p-2 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto scrollbar-hide w-full mb-10 gap-2">
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'galleries', label: 'Galleries', icon: FolderOpen },
-            { id: 'clients', label: 'Clients', icon: Users2 },
-            { id: 'services', label: 'Services', icon: Settings },
-            { id: 'team', label: 'Team', icon: Users },
-            { id: 'bookings', label: 'Bookings', icon: Calendar },
-            { id: 'payments', label: 'Payments', icon: CreditCard },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-6 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${
-                activeTab === tab.id 
-                  ? 'bg-gradient-to-r from-black to-gray-900 text-white shadow-lg' 
-                  : 'text-gray-500 hover:text-black hover:bg-gray-50'
-              }`}
-            >
-              <tab.icon className="w-5 h-5" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        {/* ── TAB NAVIGATION BAR ── */}
+        <div className="flex items-center gap-1.5 glass-strong border border-white/10 p-1.5 rounded-2xl overflow-x-auto scrollbar-hide">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
+                  isActive
+                    ? 'bg-white text-black font-black shadow-md'
+                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {loading && <div className="py-24 text-center"><RefreshCw className="w-12 h-12 animate-spin mx-auto text-gray-200" /></div>}
+        {/* ── LOADING SKELETON ── */}
+        {loading && (
+          <div className="py-24 text-center space-y-3">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-white/30" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Loading Studio State…</p>
+          </div>
+        )}
 
+        {/* ── ACTIVE TAB CONTENT ── */}
         <AnimatePresence mode="wait">
+
+          {/* ════ TAB 1: DASHBOARD OVERVIEW ════ */}
           {!loading && activeTab === 'dashboard' && (
-            <motion.div key="dashboard" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 mb-16">
+            <motion.div 
+              key="dashboard" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: 'Total Events', val: stats.totalEvents, icon: Layers, color: 'text-blue-600', bg: 'from-blue-50 to-blue-100', border: 'border-blue-100' },
-                  { label: 'Total Clients', val: stats.totalClients, icon: Users, color: 'text-purple-600', bg: 'from-purple-50 to-purple-100', border: 'border-purple-100' },
-                  { label: 'Total Revenue', val: `₹${stats.totalRevenue}`, icon: DollarSign, color: 'text-emerald-600', bg: 'from-emerald-50 to-emerald-100', border: 'border-emerald-100' },
-                  { label: 'Total Downloads', val: stats.totalDownloads, icon: DownloadCloud, color: 'text-amber-600', bg: 'from-amber-50 to-amber-100', border: 'border-amber-100' },
-                ].map((stat, i) => (
-                  <motion.div key={i} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.1 }} className="p-6 sm:p-10 bg-white rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                    <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${stat.bg} ${stat.border} border rounded-xl sm:rounded-2xl flex items-center justify-center mb-6 sm:mb-8`}>
-                      <stat.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${stat.color}`} />
-                    </div>
-                    <p className="text-gray-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-2 sm:mb-3">{stat.label}</p>
-                    <p className="text-2xl sm:text-4xl font-black text-dark tracking-tighter">{stat.val}</p>
-                  </motion.div>
-                ))}
+                  { label: 'Total Events', val: stats.totalEvents, icon: Layers },
+                  { label: 'Total Clients', val: stats.totalClients, icon: Users },
+                  { label: 'Total Revenue', val: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, icon: DollarSign },
+                  { label: 'Total Downloads', val: stats.totalDownloads, icon: DownloadCloud },
+                ].map((stat, i) => {
+                  const Icon = stat.icon;
+                  return (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, y: 15 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      transition={{ delay: i * 0.08 }} 
+                      className="p-6 rounded-2xl glass-strong border border-white/12 space-y-4"
+                    >
+                      <div className="flex items-center justify-between text-white/40">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">{stat.label}</span>
+                        <div className="w-9 h-9 rounded-xl glass-subtle border border-white/15 flex items-center justify-center text-white/60">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      </div>
+                      <p className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{stat.val}</p>
+                    </motion.div>
+                  );
+                })}
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-white p-12 rounded-[3rem] border border-gray-100 shadow-lg text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                  <Star className="w-10 h-10 text-white" />
+
+              <div className="glass-subtle border border-white/10 p-8 sm:p-12 rounded-3xl space-y-4 text-center max-w-2xl mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/15 flex items-center justify-center mx-auto text-amber-400">
+                  <Star className="w-6 h-6 fill-amber-400" />
                 </div>
-                <h3 className="heading-serif text-4xl mb-6 italic">Welcome back, Admin!</h3>
-                <p className="text-gray-600 max-w-2xl mx-auto font-medium text-lg leading-relaxed">
-                  Your studio is operating smoothly. Use the tabs above to manage all your services, clients, galleries and team!
+                <h3 className="heading-serif text-2xl sm:text-3xl font-bold text-white">System Status: Operational</h3>
+                <p className="text-xs text-white/50 leading-relaxed">
+                  All microservices, galleries, booking workflows, and client repositories are running with synchronized state.
                 </p>
               </div>
             </motion.div>
           )}
 
+          {/* ════ TAB 2: GALLERIES ════ */}
           {!loading && activeTab === 'galleries' && (
-            <motion.div key="galleries" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Galleries</h2>
-                <button onClick={() => setIsCreating(!isCreating)} className="btn-quote !py-5 !px-8 !text-sm">
-                  {isCreating ? 'Cancel' : 'New Gallery'}
-                </button>
-              </div>
-
+            <motion.div 
+              key="galleries" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              {/* Gallery Creation Form */}
               {isCreating && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-16">
-                  <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 shadow-xl relative">
-                    <form onSubmit={handleCreateGallery} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-7">
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Event Title</label>
-                          <input type="text" placeholder="e.g., Wedding Ceremony" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newGallery.title} onChange={e => setNewGallery({...newGallery, title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-')})} required />
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
+                  <div className="glass-strong p-8 sm:p-10 rounded-3xl border border-white/15 space-y-6">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h3 className="heading-serif text-xl font-bold text-white">Create New Event Gallery</h3>
+                      <button onClick={() => setIsCreating(false)} className="text-white/40 hover:text-white"><X className="w-5 h-5" /></button>
+                    </div>
+
+                    <form onSubmit={handleCreateGallery} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Event Title</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Royal Wedding Gala" 
+                            className="w-full px-4 py-3 bg-white/5 border border-white/12 focus:border-white/40 focus:outline-none rounded-xl text-white text-sm font-medium" 
+                            value={newGallery.title} 
+                            onChange={e => setNewGallery({...newGallery, title: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-')})} 
+                            required 
+                          />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Event Date</label>
-                          <input type="date" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newGallery.eventDate} onChange={e => setNewGallery({...newGallery, eventDate: e.target.value})} required />
+
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Event Date</label>
+                          <input 
+                            type="date" 
+                            className="w-full px-4 py-3 bg-white/5 border border-white/12 focus:border-white/40 focus:outline-none rounded-xl text-white text-sm font-medium [color-scheme:dark]" 
+                            value={newGallery.eventDate} 
+                            onChange={e => setNewGallery({...newGallery, eventDate: e.target.value})} 
+                            required 
+                          />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Location</label>
-                          <div className="flex gap-4">
-                            <input type="text" placeholder="Location Name" className="flex-grow px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newGallery.location} onChange={e => setNewGallery({...newGallery, location: e.target.value})} />
-                            <button type="button" onClick={detectLocation} className="p-5 bg-gray-100 rounded-2xl hover:bg-black hover:text-white transition-all"><Locate className="w-6 h-6" /></button>
+
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Location</label>
+                          <div className="flex gap-2">
+                            <input 
+                              type="text" 
+                              placeholder="City / Venue" 
+                              className="flex-grow px-4 py-3 bg-white/5 border border-white/12 focus:border-white/40 focus:outline-none rounded-xl text-white text-sm font-medium" 
+                              value={newGallery.location} 
+                              onChange={e => setNewGallery({...newGallery, location: e.target.value})} 
+                            />
+                            <button type="button" onClick={detectLocation} className="p-3 glass-subtle border border-white/15 rounded-xl hover:border-white/30 text-white/60 hover:text-white"><Locate className="w-4 h-4" /></button>
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-7">
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Access Password</label>
-                          <input type="text" placeholder="e.g., RRE2024" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newGallery.password} onChange={e => setNewGallery({...newGallery, password: e.target.value})} required />
+
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Access Password</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. RRE2026" 
+                            className="w-full px-4 py-3 bg-white/5 border border-white/12 focus:border-white/40 focus:outline-none rounded-xl text-white text-sm font-medium" 
+                            value={newGallery.password} 
+                            onChange={e => setNewGallery({...newGallery, password: e.target.value})} 
+                            required 
+                          />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">
-                            Package Price (₹) <span className="normal-case font-medium text-gray-400 tracking-normal ml-1">— Optional</span>
-                          </label>
-                          <input type="number" placeholder="Leave blank if not applicable" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newGallery.revenue || ''} onChange={e => setNewGallery({...newGallery, revenue: parseInt(e.target.value) || 0})} />
+
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Package Price (₹)</label>
+                          <input 
+                            type="number" 
+                            placeholder="Optional amount" 
+                            className="w-full px-4 py-3 bg-white/5 border border-white/12 focus:border-white/40 focus:outline-none rounded-xl text-white text-sm font-medium" 
+                            value={newGallery.revenue || ''} 
+                            onChange={e => setNewGallery({...newGallery, revenue: parseInt(e.target.value) || 0})} 
+                          />
                         </div>
-                        <div className="flex items-center gap-4 pt-2">
+
+                        <div className="flex items-center gap-3 pt-2">
                           <input 
                             type="checkbox" 
                             id="isPublic" 
-                            className="w-6 h-6 rounded border-gray-300 text-black focus:ring-black"
+                            className="w-4 h-4 rounded border-white/20 bg-white/5 text-white focus:ring-0"
                             checked={newGallery.isPublic}
                             onChange={e => setNewGallery({...newGallery, isPublic: e.target.checked})}
                           />
-                          <label htmlFor="isPublic" className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Make this Gallery Public</label>
+                          <label htmlFor="isPublic" className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Make Gallery Public</label>
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Cover Image</label>
+
+                        <div className="space-y-1.5">
+                          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Cover Image</label>
                           <input 
                             type="file" 
                             accept="image/*"
@@ -718,271 +835,279 @@ const AdminPanel = () => {
                                 reader.readAsDataURL(file);
                               }
                             }}
-                            className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" 
+                            className="w-full text-xs text-white/50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer" 
                           />
                           {newGallery.coverImage && (
-                            <div className="mt-5 relative aspect-video rounded-2xl overflow-hidden shadow-sm">
-                              <img src={newGallery.coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                            <div className="mt-2 aspect-video rounded-xl overflow-hidden border border-white/15">
+                              <img src={newGallery.coverImage} alt="Preview" className="w-full h-full object-cover" />
                             </div>
                           )}
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Media Upload</label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                             <button type="button" onClick={() => openCamera()} className="py-5 bg-gradient-to-r from-primary to-primary/80 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3"><CameraIcon className="w-5 h-5" /> Live Camera</button>
-                             <button type="button" onClick={() => fileInputRef.current?.click()} className="py-5 bg-black text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3">
-                               <Upload className="w-5 h-5" /> Upload Photos
-                             </button>
-                             <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                multiple 
-                                accept="image/*" 
-                                onChange={(e) => handleFileUpload(e)} 
-                             />
-                          </div>
-                        </div>
                       </div>
-                      <button 
-                        type="submit" 
-                        disabled={isSubmitting}
-                        className="md:col-span-2 btn-quote py-6 mt-6 disabled:opacity-50 text-lg"
-                      >
-                        {isSubmitting ? <RefreshCw className="w-6 h-6 animate-spin mx-auto" /> : 'Save Gallery & Generate QR'}
-                      </button>
+
+                      <div className="md:col-span-2 pt-2 flex flex-col sm:flex-row gap-3">
+                        <button 
+                          type="button" 
+                          onClick={() => fileInputRef.current?.click()} 
+                          className="flex items-center justify-center gap-2 py-3 px-5 glass-subtle border border-white/15 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/70 hover:text-white"
+                        >
+                          <Upload className="w-3.5 h-3.5" /> Upload Photos
+                        </button>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          multiple 
+                          accept="image/*" 
+                          onChange={(e) => handleFileUpload(e)} 
+                        />
+                        <button 
+                          type="submit" 
+                          disabled={isSubmitting}
+                          className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50"
+                        >
+                          {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Save Gallery & Generate QR'}
+                        </button>
+                      </div>
                     </form>
                   </div>
                 </motion.div>
               )}
 
+              {/* Gallery Grid */}
               {galleries.length === 0 ? (
-                <div className="py-28 text-center border-2 border-dashed border-gray-200 rounded-[3rem] bg-white">
-                  <AlertCircle className="w-20 h-20 text-gray-200 mx-auto mb-8" />
-                  <p className="text-gray-300 font-black uppercase tracking-[0.4em] text-sm">No Galleries Created Yet</p>
+                <div className="py-20 text-center glass-subtle rounded-3xl border border-white/10 space-y-3">
+                  <AlertCircle className="w-10 h-10 text-white/20 mx-auto" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">No Galleries Created Yet</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {galleries.map((gallery: any) => (
-                  <div key={gallery._id} className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group">
-                    <div className="relative aspect-video rounded-2xl overflow-hidden mb-8">
-                      <img src={gallery.coverImage || 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&q=80'} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="" loading="lazy" decoding="async" />
-                      <div className="absolute top-5 right-5 bg-white/95 backdrop-blur-xl px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-lg">Pass: {gallery.password}</div>
+                    <div key={gallery._id} className="glass-strong p-6 rounded-3xl border border-white/12 space-y-5 flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10">
+                          <img 
+                            src={gallery.coverImage || 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&q=80'} 
+                            className="w-full h-full object-cover" 
+                            alt={gallery.title} 
+                            loading="lazy" 
+                          />
+                          <div className="absolute top-3 right-3 glass-strong px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white border border-white/15">
+                            Pass: {gallery.password}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <h3 className="heading-serif text-xl font-bold text-white leading-tight">{gallery.title}</h3>
+                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-white/40">
+                            <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {gallery.location}</span>
+                            <span className="glass-subtle px-2 py-0.5 rounded border border-white/10 text-white/60">{gallery.media?.length || 0} Captures</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                        <span className="text-xs font-mono font-bold text-emerald-400">{gallery.revenue ? `₹${gallery.revenue.toLocaleString('en-IN')}` : '—'}</span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => openCamera(gallery.slug)} aria-label="Camera" className="p-2 glass-subtle rounded-lg text-white/50 hover:text-white border border-white/10">
+                            <CameraIcon className="w-4 h-4" />
+                          </button>
+                          <label className="p-2 glass-subtle rounded-lg text-white/50 hover:text-white border border-white/10 cursor-pointer">
+                            <Upload className="w-4 h-4" />
+                            <input type="file" className="hidden" multiple accept="image/*" onChange={(e) => handleFileUpload(e, gallery.slug)} />
+                          </label>
+                          <button onClick={() => openQrModal(gallery)} aria-label="QR Code" className="p-2 glass-subtle rounded-lg text-white/50 hover:text-white border border-white/10">
+                            <QrCode className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => setEditingGallery({ ...gallery })} aria-label="Edit" className="p-2 glass-subtle rounded-lg text-white/50 hover:text-white border border-white/10">
+                            <Settings className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteGallery(gallery._id)} aria-label="Delete" className="p-2 glass-subtle rounded-lg text-red-400 hover:text-red-300 border border-white/10">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">{gallery.title}</h3>
-                    <div className="flex justify-between items-center mb-6">
-                      <p className="text-gray-500 text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                        <MapPin className="w-4 h-4" /> {gallery.location}
-                      </p>
-                      <span className="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-black text-gray-500">
-                        {gallery.media?.length || 0} PHOTOS
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center border-t border-gray-100 pt-6">
-                       <span className="text-sm font-black text-emerald-600">{gallery.revenue ? `₹${gallery.revenue}` : '—'}</span>
-                       <div className="flex gap-4">
-                         <CameraIcon onClick={() => openCamera(gallery.slug)} className="w-6 h-6 text-primary cursor-pointer hover:scale-110 transition-all" />
-                         <label className="cursor-pointer">
-                            <Upload className="w-6 h-6 text-emerald-600 hover:scale-110 transition-all" />
-                            <input 
-                              type="file" 
-                              className="hidden" 
-                              multiple 
-                              accept="image/*" 
-                              onChange={(e) => handleFileUpload(e, gallery.slug)} 
-                            />
-                         </label>
-                         <QrCode 
-                            onClick={() => openQrModal(gallery)} 
-                            className="w-6 h-6 text-gray-400 cursor-pointer hover:text-black transition-all" 
-                         />
-                         <Settings
-                            onClick={() => setEditingGallery({ ...gallery })}
-                            className="w-6 h-6 text-blue-300 cursor-pointer hover:text-blue-600 transition-all"
-                         />
-                         <Trash2
-                            onClick={() => handleDeleteGallery(gallery._id)}
-                            className="w-6 h-6 text-red-300 cursor-pointer hover:text-red-600 transition-all"
-                         />
-                       </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               )}
             </motion.div>
           )}
 
+          {/* ════ TAB 3: CLIENTS ════ */}
           {!loading && activeTab === 'clients' && (
-            <motion.div key="clients" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Clients</h2>
-                <button onClick={() => setIsAddingClient(!isAddingClient)} className="btn-quote !py-5 !px-8 !text-sm">
-                  {isAddingClient ? 'Cancel' : 'Add New Client'}
+            <motion.div 
+              key="clients" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="heading-serif text-2xl font-bold">Client Directory</h2>
+                <button 
+                  onClick={() => setIsAddingClient(!isAddingClient)} 
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90 transition-colors"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>{isAddingClient ? 'Cancel' : 'Add Client'}</span>
                 </button>
               </div>
+
               {isAddingClient && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-12">
-                  <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 shadow-xl max-w-3xl mx-auto">
-                    <form onSubmit={handleAddClient} className="space-y-6">
-                      <input type="text" placeholder="Full Name" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})} required />
-                      <input type="email" placeholder="Email Address" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newClient.email} onChange={e => setNewClient({...newClient, email: e.target.value})} required />
-                      <input type="password" placeholder="Temp Password" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20" value={newClient.password} onChange={e => setNewClient({...newClient, password: e.target.value})} required />
-                      <button type="submit" className="w-full btn-quote py-5 text-lg">Register Client</button>
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
+                  <div className="glass-strong p-8 rounded-3xl border border-white/12 max-w-2xl mx-auto space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">Register New Client</h3>
+                    <form onSubmit={handleAddClient} className="space-y-3">
+                      <input type="text" placeholder="Full Name" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium" value={newClient.name} onChange={e => setNewClient({...newClient, name: e.target.value})} required />
+                      <input type="email" placeholder="Email Address" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium" value={newClient.email} onChange={e => setNewClient({...newClient, email: e.target.value})} required />
+                      <input type="password" placeholder="Temporary Password" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium" value={newClient.password} onChange={e => setNewClient({...newClient, password: e.target.value})} required />
+                      <button type="submit" className="w-full py-3.5 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90">Register Client</button>
                     </form>
                   </div>
                 </motion.div>
               )}
-              <div className="hidden md:block bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+
+              {/* Client List (Desktop Table) */}
+              <div className="hidden md:block glass-strong rounded-3xl border border-white/10 overflow-hidden">
                 <table className="w-full text-left whitespace-nowrap min-w-[700px]">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-white/5 border-b border-white/10">
                     <tr>
-                      <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Client</th>
-                      <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Contact</th>
-                      <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Status</th>
-                      <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Events</th>
-                      <th className="px-10 py-8 text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Actions</th>
+                      <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Client</th>
+                      <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Contact</th>
+                      <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Status</th>
+                      <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Events</th>
+                      <th className="px-6 py-4 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">Assign</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-white/5">
                     {clients.map((client: any) => (
-                    <tr key={client._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-10 py-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
-                            {client.selfieUrl ? (
-                              <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                <UserIcon className="w-6 h-6" />
-                              </div>
-                            )}
+                      <tr key={client._id} className="hover:bg-white/3 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-white/10 overflow-hidden border border-white/20 flex-shrink-0 flex items-center justify-center">
+                              {client.selfieUrl ? (
+                                <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
+                              ) : (
+                                <UserIcon className="w-4 h-4 text-white/40" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-white">{client.name}</p>
+                              <p className="text-[10px] text-white/30 font-mono">#{client._id.slice(-6)}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-black text-dark uppercase tracking-tight text-sm">{client.name}</p>
-                            <p className="text-[11px] text-gray-400 font-bold">#{client._id.slice(-6)}</p>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-white/70">
+                          <p>{client.email}</p>
+                          <p className="text-white/40 text-[10px]">{client.mobile || '—'}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                            client.isVerified ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {client.isVerified ? 'Verified' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-1.5">
+                            {client.myEvents?.map((ev: any) => (
+                              <span key={ev._id} className="px-2 py-0.5 glass-subtle text-[9px] font-bold uppercase rounded border border-white/10">{ev.title}</span>
+                            ))}
+                            {(!client.myEvents || client.myEvents.length === 0) && <span className="text-[10px] text-white/20">None</span>}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600 font-bold flex items-center gap-2"><Mail className="w-4 h-4" /> {client.email}</p>
-                          <p className="text-sm text-gray-600 font-bold flex items-center gap-2"><Phone className="w-4 h-4" /> {client.mobile || 'N/A'}</p>
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                        <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase border ${
-                          client.isVerified 
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                            : 'bg-amber-50 text-amber-600 border-amber-100'
-                        }`}>
-                          {client.isVerified ? 'Verified' : 'Pending'}
-                        </span>
-                      </td>
-                      <td className="px-10 py-8">
-                        <div className="flex flex-wrap gap-2">
-                          {client.myEvents?.map((ev: any) => (
-                            <span key={ev._id} className="px-3 py-1.5 bg-primary/5 text-primary text-[10px] font-black uppercase rounded-full border border-primary/10">{ev.title}</span>
-                          ))}
-                          {client.myEvents?.length === 0 && <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest italic">None</span>}
-                        </div>
-                      </td>
-                      <td className="px-10 py-8">
-                         <select 
-                           onChange={(e) => { 
-                             if (e.target.value) {
-                               assignEventToClient(client._id, e.target.value);
-                             }
-                           }} 
-                           className="bg-gray-50 border border-gray-100 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl px-5 py-4 focus:ring-0 cursor-pointer"
-                         >
-                           <option value="">Assign Event...</option>
-                           {galleries.map((g: any) => {
-                             return (<option key={g._id} value={g._id}>{g.title}</option>);
-                           })}
-                         </select>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4">
+                          <select 
+                            onChange={(e) => { 
+                              if (e.target.value) {
+                                assignEventToClient(client._id, e.target.value);
+                              }
+                            }} 
+                            className="bg-white/5 border border-white/12 text-[10px] font-bold uppercase tracking-wider rounded-lg px-3 py-1.5 focus:outline-none cursor-pointer [color-scheme:dark]"
+                          >
+                            <option value="">Assign Event…</option>
+                            {galleries.map((g: any) => (
+                              <option key={g._id} value={g._id}>{g.title}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              <div className="md:hidden space-y-6">
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-4">
                 {clients.map((client: any) => (
-                <div key={client._id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
-                      {client.selfieUrl ? (
-                        <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                          <UserIcon className="w-8 h-8" />
-                        </div>
-                      )}
+                  <div key={client._id} className="glass-strong rounded-2xl border border-white/10 p-6 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden border border-white/20 flex-shrink-0 flex items-center justify-center">
+                        {client.selfieUrl ? (
+                          <img src={client.selfieUrl} className="w-full h-full object-cover" alt={client.name} />
+                        ) : (
+                          <UserIcon className="w-5 h-5 text-white/40" />
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <p className="font-bold text-sm text-white">{client.name}</p>
+                        <p className="text-[10px] text-white/40">{client.email}</p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase ${
+                        client.isVerified ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                        {client.isVerified ? 'Verified' : 'Pending'}
+                      </span>
                     </div>
-                    <div className="flex-grow">
-                      <p className="font-black text-dark uppercase tracking-tight text-lg">{client.name}</p>
-                      <p className="text-[11px] text-gray-400 font-bold">#{client._id.slice(-6)}</p>
-                    </div>
-                    <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase border flex-shrink-0 ${
-                      client.isVerified 
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                        : 'bg-amber-50 text-amber-600 border-amber-100'
-                    }`}>
-                      {client.isVerified ? 'Verified' : 'Pending'}
-                    </span>
+
+                    <select 
+                      onChange={(e) => { 
+                        if (e.target.value) {
+                          assignEventToClient(client._id, e.target.value);
+                        }
+                      }} 
+                      className="w-full bg-white/5 border border-white/12 text-[10px] font-bold uppercase tracking-wider rounded-xl px-4 py-2.5 focus:outline-none cursor-pointer [color-scheme:dark]"
+                    >
+                      <option value="">Assign Event…</option>
+                      {galleries.map((g: any) => (
+                        <option key={g._id} value={g._id}>{g.title}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="space-y-2 mb-6 pb-6 border-b border-gray-100">
-                    <p className="text-sm text-gray-600 font-bold flex items-center gap-2"><Mail className="w-4 h-4" /> {client.email}</p>
-                    <p className="text-sm text-gray-600 font-bold flex items-center gap-2"><Phone className="w-4 h-4" /> {client.mobile || 'N/A'}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {client.myEvents?.map((ev: any) => (
-                      <span key={ev._id} className="px-4 py-2 bg-primary/5 text-primary text-[10px] font-black uppercase rounded-full border border-primary/10">{ev.title}</span>
-                    ))}
-                    {client.myEvents?.length === 0 && <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest italic">No events assigned</span>}
-                  </div>
-                  <select 
-                    onChange={(e) => { 
-                      if (e.target.value) {
-                        assignEventToClient(client._id, e.target.value);
-                      }
-                    }} 
-                    className="w-full bg-gray-50 border border-gray-100 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl px-5 py-4 focus:ring-0 cursor-pointer"
-                  >
-                     <option value="">Assign Event...</option>
-                     {galleries.map((g: any) => {
-                       return (<option key={g._id} value={g._id}>{g.title}</option>);
-                     })}
-                  </select>
-                </div>
-              ))}
-              {clients.length === 0 && (
-                <div className="py-20 text-center border-2 border-dashed border-gray-200 rounded-[2.5rem] bg-white">
-                  <p className="text-gray-300 font-black uppercase tracking-[0.4em] text-sm">No Clients Yet</p>
-                </div>
-              )}
+                ))}
               </div>
             </motion.div>
           )}
 
+          {/* ════ TAB 4: SERVICES ════ */}
           {!loading && activeTab === 'services' && (
-            <motion.div key="services" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Manage Services</h2>
-                <button onClick={() => setIsEditingService(!isEditingService)} className="btn-quote !py-5 !px-8 !text-sm">
-                  {isEditingService ? 'Cancel' : 'Add New Service'}
+            <motion.div 
+              key="services" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="heading-serif text-2xl font-bold">Services Configuration</h2>
+                <button 
+                  onClick={() => setIsEditingService(!isEditingService)} 
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{isEditingService ? 'Cancel' : 'Add Service'}</span>
                 </button>
               </div>
 
               {isEditingService && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-12">
-                  <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 shadow-xl max-w-5xl mx-auto">
-                    <form onSubmit={handleCreateService} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-7">
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
+                  <div className="glass-strong p-8 rounded-3xl border border-white/12 max-w-3xl mx-auto space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">Create New Service</h3>
+                    <form onSubmit={handleCreateService} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <select 
-                          className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium [color-scheme:dark]"
                           value={newService.category}
                           onChange={e => setNewService({...newService, category: e.target.value})}
                         >
@@ -992,241 +1117,248 @@ const AdminPanel = () => {
                           <option value="production">Music Production</option>
                           <option value="live">Live Streaming</option>
                         </select>
-                        <input type="text" placeholder="Service Title" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newService.title} onChange={e => setNewService({...newService, title: e.target.value})} required />
-                        <input type="text" placeholder="Starting Price" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newService.price} onChange={e => setNewService({...newService, price: e.target.value})} />
+                        <input type="text" placeholder="Service Title" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newService.title} onChange={e => setNewService({...newService, title: e.target.value})} required />
+                        <input type="text" placeholder="Starting Price (e.g. ₹50,000)" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newService.price} onChange={e => setNewService({...newService, price: e.target.value})} />
                       </div>
-                      <div className="space-y-7">
-                        <textarea placeholder="Description" rows={3} className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} required />
-                        <textarea 
-                          placeholder="Features (one per line)" 
-                          rows={3} 
-                          className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" 
-                          value={newService.features.join('\n')} 
-                          onChange={e => setNewService({...newService, features: e.target.value.split('\n')})} 
-                        />
-                      </div>
-                      <button type="submit" disabled={isSubmitting} className="md:col-span-2 btn-quote py-6 text-lg">
-                        {isSubmitting ? <RefreshCw className="w-6 h-6 animate-spin mx-auto" /> : 'Save Service'}
+                      <textarea placeholder="Description" rows={3} className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} required />
+                      <textarea 
+                        placeholder="Features (one per line)" 
+                        rows={3} 
+                        className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" 
+                        value={newService.features.join('\n')} 
+                        onChange={e => setNewService({...newService, features: e.target.value.split('\n')})} 
+                      />
+                      <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90">
+                        {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : 'Save Service'}
                       </button>
                     </form>
                   </div>
                 </motion.div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services.map((service: any) => (
-                <div key={service._id} className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm relative group">
-                  <button 
-                    onClick={() => deleteService(service._id)}
-                    className="absolute top-7 right-7 p-3 bg-red-50 text-red-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                  <span className="inline-block px-5 py-2 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full mb-6">
-                    {service.category}
-                  </span>
-                  <h3 className="text-2xl font-black mb-4">{service.title}</h3>
-                  <p className="text-gray-500 text-base mb-6 line-clamp-2">{service.description}</p>
-                  <p className="text-2xl font-black text-dark mb-8">{service.price}</p>
-                  <ul className="space-y-2">
-                    {service.features.slice(0, 3).map((f: string, i: number) => (
-                      <li key={i} className="text-[11px] text-gray-500 font-bold flex items-center gap-3">
-                        <CheckCircle className="w-4 h-4 text-emerald-600" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                  <div key={service._id} className="glass-strong p-8 rounded-3xl border border-white/10 space-y-4 relative group flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <span className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider glass-subtle text-white/70 border border-white/10">
+                          {service.category}
+                        </span>
+                        <button 
+                          onClick={() => deleteService(service._id)}
+                          aria-label="Delete Service"
+                          className="p-2 glass-subtle rounded-lg text-red-400 hover:text-red-300 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <h3 className="heading-serif text-2xl font-bold text-white">{service.title}</h3>
+                      <p className="text-xs text-white/50 leading-relaxed line-clamp-2">{service.description}</p>
+                    </div>
+
+                    <div className="space-y-3 pt-4 border-t border-white/10">
+                      <p className="text-lg font-black text-white font-mono">{service.price}</p>
+                      <ul className="space-y-1.5">
+                        {service.features.slice(0, 3).map((f: string, i: number) => (
+                          <li key={i} className="text-[10px] text-white/60 flex items-center gap-2">
+                            <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" /> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}
 
+          {/* ════ TAB 5: TEAM ════ */}
           {!loading && activeTab === 'team' && (
-            <motion.div key="team" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Manage Team</h2>
-                <button onClick={() => {
-                  setIsEditingTeam(!isEditingTeam);
-                  if (!isEditingTeam) {
-                    setNewTeamMember({ name: '', role: '', bio: '', img: '', insta: '' });
-                    setTeamPhotoPreview('');
-                    setEditingTeamMemberId(null);
-                  }
-                }} className="btn-quote !py-5 !px-8 !text-sm">
-                  {isEditingTeam ? 'Cancel' : 'Add New Member'}
+            <motion.div 
+              key="team" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="heading-serif text-2xl font-bold">Team Management</h2>
+                <button 
+                  onClick={() => {
+                    setIsEditingTeam(!isEditingTeam);
+                    if (!isEditingTeam) {
+                      setNewTeamMember({ name: '', role: '', bio: '', img: '', insta: '' });
+                      setTeamPhotoPreview('');
+                      setEditingTeamMemberId(null);
+                    }
+                  }} 
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{isEditingTeam ? 'Cancel' : 'Add Member'}</span>
                 </button>
               </div>
 
               {isEditingTeam && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden mb-12">
-                  <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] border border-gray-100 shadow-xl max-w-5xl mx-auto">
-                    <form onSubmit={handleCreateTeamMember} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-7">
-                        <input type="text" placeholder="Member Name" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newTeamMember.name} onChange={e => setNewTeamMember({...newTeamMember, name: e.target.value})} required />
-                        <input type="text" placeholder="Role (e.g., CEO & Founder)" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newTeamMember.role} onChange={e => setNewTeamMember({...newTeamMember, role: e.target.value})} required />
-                        <div>
-                          <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-4">Profile Photo</label>
-                          <div
-                            onClick={() => teamPhotoRef.current?.click()}
-                            className="relative w-full cursor-pointer group"
-                          >
-                            {teamPhotoPreview ? (
-                              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary transition-colors">
-                                <img src={teamPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                  <span className="text-white text-[11px] font-black uppercase tracking-widest">Change Photo</span>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="w-full py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-3">
-                                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                  <CameraIcon className="w-7 h-7 text-gray-400 group-hover:text-primary transition-colors" />
-                                </div>
-                                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 group-hover:text-primary transition-colors">Click to Upload Photo</span>
-                                <span className="text-[10px] text-gray-300 font-bold">JPG, PNG or WEBP • Max 5MB</span>
-                              </div>
-                            )}
-                          </div>
-                          <input
-                            ref={teamPhotoRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              if (file.size > 5 * 1024 * 1024) {
-                                toast.error('Photo must be under 5MB');
-                                return;
-                              }
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
-                                const dataUrl = ev.target?.result as string;
-                                setTeamPhotoPreview(dataUrl);
-                                setNewTeamMember(prev => ({ ...prev, img: dataUrl }));
-                              };
-                              reader.readAsDataURL(file);
-                            }}
-                          />
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
+                  <div className="glass-strong p-8 rounded-3xl border border-white/12 max-w-3xl mx-auto space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                      {editingTeamMemberId ? 'Edit Team Member' : 'Add Team Member'}
+                    </h3>
+                    <form onSubmit={handleCreateTeamMember} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Full Name" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newTeamMember.name} onChange={e => setNewTeamMember({...newTeamMember, name: e.target.value})} required />
+                        <input type="text" placeholder="Role (e.g. Lead Cinematographer)" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newTeamMember.role} onChange={e => setNewTeamMember({...newTeamMember, role: e.target.value})} required />
+                        <input type="text" placeholder="Instagram Profile URL (optional)" className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newTeamMember.insta} onChange={e => setNewTeamMember({...newTeamMember, insta: e.target.value})} />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Profile Photo (Max 5MB)</label>
+                        <div
+                          onClick={() => teamPhotoRef.current?.click()}
+                          className="w-full py-8 glass-subtle border-2 border-dashed border-white/15 rounded-2xl hover:border-white/30 cursor-pointer flex flex-col items-center justify-center gap-2 text-center"
+                        >
+                          {teamPhotoPreview ? (
+                            <img src={teamPhotoPreview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-white/20" />
+                          ) : (
+                            <>
+                              <CameraIcon className="w-6 h-6 text-white/40" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Upload Photo</span>
+                            </>
+                          )}
                         </div>
-                        <input type="text" placeholder="Instagram URL (optional)" className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newTeamMember.insta} onChange={e => setNewTeamMember({...newTeamMember, insta: e.target.value})} />
+                        <input
+                          ref={teamPhotoRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast.error('Photo must be under 5MB');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const dataUrl = ev.target?.result as string;
+                              setTeamPhotoPreview(dataUrl);
+                              setNewTeamMember(prev => ({ ...prev, img: dataUrl }));
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
                       </div>
-                      <div className="space-y-7">
-                        <textarea placeholder="Bio" rows={6} className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none" value={newTeamMember.bio} onChange={e => setNewTeamMember({...newTeamMember, bio: e.target.value})} required />
-                      </div>
-                      <button type="submit" disabled={isSubmitting} className="md:col-span-2 btn-quote py-6 text-lg">
-                        {isSubmitting ? <RefreshCw className="w-6 h-6 animate-spin mx-auto" /> : (editingTeamMemberId ? 'Update Member' : 'Save Member')}
+
+                      <textarea placeholder="Biography" rows={4} className="w-full px-4 py-3 bg-white/5 border border-white/12 rounded-xl text-white text-sm" value={newTeamMember.bio} onChange={e => setNewTeamMember({...newTeamMember, bio: e.target.value})} required />
+
+                      <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-white text-black text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90">
+                        {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : (editingTeamMemberId ? 'Update Member' : 'Save Member')}
                       </button>
                     </form>
                   </div>
                 </motion.div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {team.map((member: any) => (
-                <div key={member._id} className="bg-white p-6 sm:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 shadow-sm relative group">
-                  <div className="flex gap-2 sm:gap-3 absolute top-5 sm:top-7 right-5 sm:right-7 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => editTeamMember(member)} className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-white transition-all">
-                      <Settings className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => deleteTeamMember(member._id)} className="p-3 bg-red-50 text-red-500 rounded-2xl hover:bg-red-100 transition-all">
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                  <div key={member._id} className="glass-strong p-6 rounded-3xl border border-white/10 space-y-4 relative group">
+                    <div className="flex gap-2 absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => editTeamMember(member)} aria-label="Edit" className="p-2 glass-subtle rounded-lg text-white hover:bg-white/20">
+                        <Settings className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => deleteTeamMember(member._id)} aria-label="Delete" className="p-2 glass-subtle rounded-lg text-red-400 hover:bg-red-500/20">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 relative">
+                      <img 
+                        src={member.img} 
+                        alt={member.name} 
+                        className="w-full h-full object-cover" 
+                        loading="lazy" 
+                        onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80'} 
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="heading-serif text-xl font-bold text-white">{member.name}</h3>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">{member.role}</p>
+                      <p className="text-xs text-white/40 leading-relaxed line-clamp-3 pt-1">{member.bio}</p>
+                    </div>
                   </div>
-                  <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-6">
-                    <img src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" decoding="async" onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80'} />
-                  </div>
-                  <h3 className="text-2xl font-black mb-2">{member.name}</h3>
-                  <p className="text-primary text-sm font-bold mb-4">{member.role}</p>
-                  <p className="text-gray-500 text-sm line-clamp-3">{member.bio}</p>
-                </div>
-              ))}
+                ))}
               </div>
             </motion.div>
           )}
 
+          {/* ════ TAB 6: BOOKINGS ════ */}
           {!loading && activeTab === 'bookings' && (
-            <motion.div key="bookings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                <h2 className="heading-serif text-3xl sm:text-4xl">Event Bookings</h2>
-                <div className="flex items-center gap-3 px-6 py-4 bg-blue-50 rounded-2xl border border-blue-100">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                  <span className="text-[11px] font-black text-blue-700 uppercase tracking-widest">
-                    Total Bookings: {bookings.length}
-                  </span>
-                </div>
+            <motion.div 
+              key="bookings" 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -15 }} 
+              className="space-y-8"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="heading-serif text-2xl font-bold">Event Bookings</h2>
+                <span className="glass-subtle border border-white/15 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/60">
+                  Total: {bookings.length}
+                </span>
               </div>
 
               {bookings.length === 0 ? (
-                <div className="bg-gradient-to-br from-gray-50 to-white p-16 rounded-[3rem] border border-gray-100 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <Calendar className="w-10 h-10 text-primary" />
-                  </div>
-                  <h3 className="heading-serif text-3xl mb-4 italic">No Bookings Yet</h3>
-                  <p className="text-gray-500 font-medium max-w-xl mx-auto">
-                    Bookings will appear here once your clients start booking services!
-                  </p>
+                <div className="py-20 text-center glass-subtle rounded-3xl border border-white/10 space-y-3">
+                  <Calendar className="w-10 h-10 text-white/20 mx-auto" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">No Bookings Recorded</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {bookings.map((booking: any) => (
-                    <div key={booking._id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
-                      {/* Header row */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-8 py-5 items-start md:items-center gap-4 md:gap-0 border-b border-gray-50">
+                    <div key={booking._id} className="glass-strong rounded-2xl border border-white/10 overflow-hidden">
+                      <div className="p-6 grid grid-cols-1 md:grid-cols-12 items-start md:items-center gap-4">
+                        
                         {/* Customer */}
-                        <div className="md:col-span-4 flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center flex-shrink-0">
-                            <UserIcon className="w-6 h-6 text-blue-600" />
+                        <div className="md:col-span-4 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl glass-subtle border border-white/15 flex items-center justify-center text-white/60 shrink-0">
+                            <UserIcon className="w-5 h-5" />
                           </div>
-                          <div className="flex flex-col min-w-0">
-                            <p className="font-black text-base truncate">{booking.customerName}</p>
-                            <p className="text-gray-400 text-xs font-bold flex items-center gap-1">
-                              <Mail className="w-3 h-3" /> {booking.customerEmail}
-                            </p>
-                            {booking.customerPhone && (
-                              <p className="text-gray-500 text-xs font-bold flex items-center gap-1">
-                                <Phone className="w-3 h-3" /> {booking.customerPhone}
-                              </p>
-                            )}
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-white truncate">{booking.customerName}</p>
+                            <p className="text-[10px] text-white/40 truncate">{booking.customerEmail}</p>
+                            {booking.customerPhone && <p className="text-[10px] text-white/40">{booking.customerPhone}</p>}
                           </div>
                         </div>
 
                         {/* Service */}
-                        <div className="md:col-span-2 flex items-center">
-                          <p className="font-black text-sm">{booking.service?.title || 'Unknown Service'}</p>
-                        </div>
-
-                        {/* Date */}
-                        <div className="md:col-span-2 flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-gray-500 text-sm font-bold">
-                            {new Date(booking.eventDate).toLocaleDateString('en-IN')}
+                        <div className="md:col-span-3">
+                          <p className="text-xs font-bold text-white">{booking.service?.title || 'Unknown Service'}</p>
+                          <p className="text-[10px] text-white/35 flex items-center gap-1 mt-0.5">
+                            <Calendar className="w-3 h-3" /> {new Date(booking.eventDate).toLocaleDateString('en-IN')}
                           </p>
                         </div>
 
                         {/* Amount */}
-                        <div className="md:col-span-2 flex items-center">
-                          <span className="font-black text-lg text-emerald-600">
+                        <div className="md:col-span-2">
+                          <span className="font-mono font-bold text-base text-emerald-400">
                             ₹{(booking.totalAmount / 100).toLocaleString('en-IN')}
                           </span>
                         </div>
 
-                        {/* Status controls */}
-                        <div className="md:col-span-2 flex items-center justify-start md:justify-end gap-2 flex-wrap">
-                          {/* Only show payment pending badge if not already confirmed/cancelled */}
+                        {/* Status Select */}
+                        <div className="md:col-span-3 flex items-center justify-start md:justify-end gap-2 flex-wrap">
                           {booking.paymentStatus === 'paid' ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700">
-                              <CheckCircle className="w-3.5 h-3.5" /> Paid
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              Paid
                             </span>
-                          ) : booking.paymentStatus === 'failed' ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-red-50 text-red-700">
-                              <AlertCircle className="w-3.5 h-3.5" /> Failed
-                            </span>
-                          ) : booking.status === 'confirmed' || booking.status === 'completed' || booking.status === 'cancelled' ? null : (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-amber-50 text-amber-700">
-                              <AlertCircle className="w-3.5 h-3.5" /> Pending
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              Pending
                             </span>
                           )}
+
                           <select
                             value={booking.status}
                             onChange={async (e) => {
@@ -1242,7 +1374,7 @@ const AdminPanel = () => {
                                 console.error(err);
                               }
                             }}
-                            className="text-xs font-bold px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer"
+                            className="text-xs font-bold px-3 py-1.5 bg-white/5 rounded-lg border border-white/15 focus:outline-none cursor-pointer [color-scheme:dark]"
                           >
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
@@ -1252,33 +1384,16 @@ const AdminPanel = () => {
                         </div>
                       </div>
 
-                      {/* Details row — location, notes, booking ID */}
-                      <div className="px-6 md:px-8 py-4 bg-gray-50/60 flex flex-col md:flex-row flex-wrap gap-4 md:gap-6 text-[11px] font-bold text-gray-500">
-                        <div className="flex flex-wrap gap-4 md:gap-6 items-center">
-                          {booking.eventLocation && (
-                            <span className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                              {booking.eventLocation}
-                            </span>
-                          )}
-                          {booking.bookingId && (
-                            <span className="flex items-center gap-1.5 font-black text-gray-400">
-                              # {booking.bookingId}
-                            </span>
-                          )}
+                      {/* Detail Footer */}
+                      {(booking.eventLocation || booking.additionalNotes || booking.bookingId) && (
+                        <div className="px-6 py-3 bg-white/3 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-[10px] text-white/40">
+                          <div className="flex items-center gap-4 flex-wrap">
+                            {booking.bookingId && <span className="font-mono text-white/50">#{booking.bookingId}</span>}
+                            {booking.eventLocation && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {booking.eventLocation}</span>}
+                            {booking.additionalNotes && <span className="italic">Note: {booking.additionalNotes}</span>}
+                          </div>
                         </div>
-                        {booking.additionalNotes && (
-                          <span className="italic text-gray-400 truncate max-w-full md:max-w-xs block">
-                            Note: {booking.additionalNotes}
-                          </span>
-                        )}
-                        <span className={`md:ml-auto inline-block w-max px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${
-                          booking.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                          booking.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                          booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                          'bg-amber-100 text-amber-700'
-                        }`}>{booking.status}</span>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1286,15 +1401,15 @@ const AdminPanel = () => {
             </motion.div>
           )}
 
+          {/* ════ TAB 7: PAYMENTS ════ */}
           {!loading && activeTab === 'payments' && (
             (() => {
-              // Combine gallery payments, booking payments, and manual gallery revenue for unified history
               const allTransactions = [
                 ...payments.map(p => ({
                   _id: p._id,
                   customerName: p.customerName,
                   customerEmail: p.customerEmail,
-                  title: p.gallery?.title || "Unknown Gallery",
+                  title: p.gallery?.title || "Gallery Access",
                   amount: p.amount / 100,
                   date: p.createdAt,
                   status: p.status,
@@ -1304,7 +1419,7 @@ const AdminPanel = () => {
                   _id: b._id,
                   customerName: b.customerName,
                   customerEmail: b.customerEmail,
-                  title: b.service?.title || "Unknown Service",
+                  title: b.service?.title || "Event Booking",
                   amount: b.totalAmount / 100,
                   date: b.updatedAt || b.createdAt,
                   status: b.paymentStatus,
@@ -1312,8 +1427,8 @@ const AdminPanel = () => {
                 })),
                 ...galleries.filter(g => g.revenue > 0).map(g => ({
                   _id: g._id + '_manual',
-                  customerName: "Offline Payment",
-                  customerEmail: "Added manually via gallery",
+                  customerName: "Direct Payment",
+                  customerEmail: "Recorded via Gallery",
                   title: g.title,
                   amount: g.revenue,
                   date: g.createdAt,
@@ -1322,77 +1437,76 @@ const AdminPanel = () => {
                 }))
               ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+              const totalRevenue = allTransactions
+                .filter(t => t.status === 'paid' || t.status === 'confirmed')
+                .reduce((acc, t) => acc + (t.amount || 0), 0);
+
               return (
-                <motion.div key="payments" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-6">
-                    <h2 className="heading-serif text-3xl sm:text-4xl">Payment History</h2>
-                    <div className="flex items-center gap-3 px-6 py-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                      <CreditCard className="w-5 h-5 text-emerald-600" />
-                      <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">
-                        Total Revenue: ₹{allTransactions.filter(t => t.status === 'paid' || t.status === 'confirmed').reduce((acc, t) => acc + (t.amount || 0), 0).toLocaleString('en-IN')}
-                      </span>
-                    </div>
+                <motion.div 
+                  key="payments" 
+                  initial={{ opacity: 0, y: 15 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  exit={{ opacity: 0, y: -15 }} 
+                  className="space-y-8"
+                >
+                  <div className="flex justify-between items-center">
+                    <h2 className="heading-serif text-2xl font-bold">Transaction History</h2>
+                    <span className="glass-subtle border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-full text-xs font-mono font-black">
+                      Total: ₹{totalRevenue.toLocaleString('en-IN')}
+                    </span>
                   </div>
 
                   {allTransactions.length === 0 ? (
-                    <div className="bg-gradient-to-br from-gray-50 to-white p-16 rounded-[3rem] border border-gray-100 text-center">
-                      <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-8">
-                        <CreditCard className="w-10 h-10 text-primary" />
-                      </div>
-                      <h3 className="heading-serif text-3xl mb-4 italic">No Payments Yet</h3>
-                      <p className="text-gray-500 font-medium max-w-xl mx-auto">
-                        Payments will appear here once your clients start booking services or purchasing galleries!
-                      </p>
+                    <div className="py-20 text-center glass-subtle rounded-3xl border border-white/10 space-y-3">
+                      <CreditCard className="w-10 h-10 text-white/20 mx-auto" />
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">No Transactions Yet</p>
                     </div>
                   ) : (
-                    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                      <div className="hidden md:grid grid-cols-12 px-8 py-6 bg-gradient-to-r from-gray-50 border-b border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    <div className="glass-strong rounded-3xl border border-white/10 overflow-hidden">
+                      <div className="hidden md:grid grid-cols-12 px-6 py-3.5 bg-white/5 border-b border-white/10 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40">
                         <div className="col-span-4">Customer</div>
                         <div className="col-span-3">Item / Service</div>
-                        <div className="col-span-2">Amount</div>
-                        <div className="col-span-3">Status</div>
+                        <div className="col-span-3">Amount</div>
+                        <div className="col-span-2 text-right">Status</div>
                       </div>
 
-                      <div className="divide-y divide-gray-100">
+                      <div className="divide-y divide-white/5">
                         {allTransactions.map((payment) => (
-                          <motion.div key={payment._id} className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-8 py-5 items-start md:items-center gap-4 md:gap-0 hover:bg-gray-50 transition-all duration-300">
-                            <div className="md:col-span-4 flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
-                                <UserIcon className="w-6 h-6 text-primary" />
+                          <div key={payment._id} className="grid grid-cols-1 md:grid-cols-12 px-6 py-4 items-start md:items-center gap-3 md:gap-0 hover:bg-white/3 transition-colors">
+                            <div className="md:col-span-4 flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg glass-subtle border border-white/15 flex items-center justify-center text-white/60 shrink-0">
+                                <UserIcon className="w-4 h-4" />
                               </div>
-                              <div className="flex flex-col min-w-0">
-                                <p className="font-black text-base truncate">{payment.customerName}</p>
-                                <p className="text-gray-400 text-xs font-bold truncate">{payment.customerEmail}</p>
+                              <div className="min-w-0">
+                                <p className="font-bold text-sm text-white truncate">{payment.customerName}</p>
+                                <p className="text-[10px] text-white/35 truncate">{payment.customerEmail}</p>
                               </div>
                             </div>
 
-                            <div className="md:col-span-3 flex flex-col">
-                              <p className="font-black text-sm truncate">{payment.title}</p>
-                              <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-1 rounded w-max mt-1">{payment.type}</span>
+                            <div className="md:col-span-3">
+                              <p className="text-xs font-bold text-white truncate">{payment.title}</p>
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">{payment.type}</span>
                             </div>
 
-                            <div className="md:col-span-2 flex flex-col">
-                              <span className="font-black text-lg text-emerald-600">
+                            <div className="md:col-span-3">
+                              <span className="font-mono font-bold text-sm text-emerald-400">
                                 ₹{payment.amount?.toLocaleString('en-IN') || 0}
                               </span>
-                              <p className="text-gray-400 text-[10px] font-bold flex items-center gap-1 mt-1">
-                                <Clock className="w-3 h-3" /> {new Date(payment.date).toLocaleDateString('en-IN')}
+                              <p className="text-[9px] text-white/30">
+                                {new Date(payment.date).toLocaleDateString('en-IN')}
                               </p>
                             </div>
 
-                            <div className="md:col-span-3 flex items-center justify-start md:justify-end">
-                              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            <div className="md:col-span-2 text-left md:text-right">
+                              <span className={`inline-block px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                                 payment.status === 'paid' || payment.status === 'confirmed'
-                                  ? 'bg-emerald-50 text-emerald-700' 
-                                  : payment.status === 'failed' 
-                                    ? 'bg-red-50 text-red-700' 
-                                    : 'bg-amber-50 text-amber-700'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               }`}>
-                                {payment.status === 'paid' || payment.status === 'confirmed' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                                 {payment.status}
                               </span>
                             </div>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -1401,62 +1515,71 @@ const AdminPanel = () => {
               );
             })()
           )}
+
         </AnimatePresence>
+
       </div>
 
+      {/* ── MODAL 1: LIVE CAMERA VIEWPORT ── */}
       <AnimatePresence>
         {isCameraOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6">
             <button onClick={() => {
               const stream = videoRef.current?.srcObject as MediaStream;
               stream?.getTracks().forEach(track => track.stop());
               setIsCameraOpen(false);
-            }} className="absolute top-8 right-8 text-white hover:text-primary transition-colors"><X className="w-14 h-14" /></button>
-            <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-video bg-neutral-900 rounded-[3rem] overflow-hidden shadow-2xl border border-white/10">
+            }} className="absolute top-8 right-8 text-white/50 hover:text-white"><X className="w-10 h-10" /></button>
+            <div className="relative w-full max-w-3xl aspect-[3/4] sm:aspect-video bg-neutral-900 rounded-3xl overflow-hidden border border-white/15">
               <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
               <canvas ref={canvasRef} className="hidden" />
             </div>
-            <button onClick={capturePhoto} className="mt-16 w-32 h-32 bg-white rounded-full border-[12px] border-white/20 hover:scale-110 active:scale-95 transition-all flex items-center justify-center group">
-              <div className="w-20 h-20 bg-white rounded-full border-4 border-black group-hover:border-primary transition-colors" />
+            <button onClick={capturePhoto} className="mt-10 w-20 h-20 rounded-full border-4 border-white/40 hover:scale-110 active:scale-95 transition-all flex items-center justify-center bg-white text-black">
+              <CameraIcon className="w-8 h-8" />
             </button>
-            <p className="mt-10 text-white text-[11px] font-black uppercase tracking-[0.5em] animate-pulse">Click to Capture</p>
+            <p className="mt-4 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Click to Capture</p>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ── MODAL 2: SUCCESS QR FLYER ── */}
       <AnimatePresence>
         {showSuccessModal && lastCreatedGallery && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[600] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6">
             <motion.div 
-              initial={{ scale: 0.8, y: 50 }} 
+              initial={{ scale: 0.9, y: 30 }} 
               animate={{ scale: 1, y: 0 }} 
-              className="bg-white max-w-xl w-full rounded-[3.5rem] p-10 sm:p-16 text-center shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide"
+              className="glass-strong max-w-md w-full rounded-3xl p-8 sm:p-10 text-center border border-white/15 space-y-6 relative"
             >
               <button 
                 onClick={() => setShowSuccessModal(false)}
-                className="absolute top-8 right-8 p-4 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-black"
+                className="absolute top-6 right-6 p-2 rounded-full glass-subtle text-white/40 hover:text-white"
               >
-                <X className="w-7 h-7" />
+                <X className="w-5 h-5" />
               </button>
-              <CheckCircle className="w-20 h-20 sm:w-28 sm:h-28 text-emerald-600 mx-auto mb-8" />
-              <h3 className="heading-serif text-4xl sm:text-5xl mb-6 italic">Rajat Raj Entertainment</h3>
-              <p className="text-gray-500 font-medium mb-12 text-lg">Gallery created and QR is ready for your event.</p>
+
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center mx-auto text-emerald-400">
+                <CheckCircle className="w-7 h-7" />
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="heading-serif text-2xl font-bold text-white">{lastCreatedGallery.title}</h3>
+                <p className="text-xs text-white/40">Gallery initialized & QR ready</p>
+              </div>
               
-              <div className="bg-gradient-to-br from-gray-50 to-white p-10 rounded-[3rem] mb-12 border border-gray-100 flex items-center justify-center">
+              <div className="bg-white p-6 rounded-2xl flex items-center justify-center">
                 <img 
                   src={lastCreatedGallery.qrCode.replace('BASE_URL_PLACEHOLDER', window.location.origin)} 
-                  className="w-64 h-64 sm:w-80 sm:h-80 mx-auto" 
+                  className="w-48 h-48" 
                   alt="QR" 
-                  id="qr-image" 
                 />
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button 
                   onClick={handleDownloadQR} 
-                  className="btn-quote !py-5 flex items-center justify-center gap-4 text-sm"
+                  className="py-3 px-4 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90 flex items-center justify-center gap-2"
                 >
-                  <Download className="w-6 h-6" /> Download QR
+                  <Download className="w-4 h-4" /> Download QR
                 </button>
                 <button 
                   onClick={() => {
@@ -1465,22 +1588,19 @@ const AdminPanel = () => {
                     const text = `*RAJAT RAJ ENTERTAINMENT*\n\nCheck out the gallery for *${lastCreatedGallery.title}*\n\n📸 *View Photos*: ${onboardingUrl}\n🔑 *Password*: ${lastCreatedGallery.password}\n\n_Captured by Rajat Raj Entertainment_`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
                   }} 
-                  className="btn-satyam-white !py-5 flex items-center justify-center gap-4 text-sm"
+                  className="py-3 px-4 glass-subtle border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:border-white/40 flex items-center justify-center gap-2"
                 >
-                  <Share2 className="w-6 h-6" /> Share WhatsApp
+                  <Share2 className="w-4 h-4" /> WhatsApp
                 </button>
                 <button 
                   onClick={() => { 
                     const baseUrl = window.location.origin;
                     navigator.clipboard.writeText(`${baseUrl}/onboarding/${lastCreatedGallery.slug}`); 
-                    alert('Link copied to clipboard!'); 
+                    toast.success('Link copied to clipboard!'); 
                   }} 
-                  className="sm:col-span-2 btn-satyam-white !py-5 flex items-center justify-center gap-4 text-sm border-dashed border-2"
+                  className="sm:col-span-2 py-3 px-4 glass-subtle border border-white/15 text-white/60 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:text-white flex items-center justify-center gap-2"
                 >
-                  <Copy className="w-6 h-6" /> Copy Gallery Link
-                </button>
-                <button onClick={() => setShowSuccessModal(false)} className="sm:col-span-2 btn-quote !bg-emerald-600 hover:!bg-emerald-700 !py-6 mt-6">
-                  Done & Close
+                  <Copy className="w-4 h-4" /> Copy Direct Link
                 </button>
               </div>
             </motion.div>
@@ -1488,149 +1608,141 @@ const AdminPanel = () => {
         )}
       </AnimatePresence>
 
-      {/* Upload Progress Dialog */}
+      {/* ── MODAL 3: UPLOAD PROGRESS DIALOG ── */}
       <AnimatePresence>
         {uploadProgress.show && (
           <motion.div 
-            initial={{ opacity: 0, y: 100 }} 
+            initial={{ opacity: 0, y: 50 }} 
             animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-10 right-10 z-[1000] w-96 bg-black text-white p-8 rounded-[2.5rem] shadow-2xl border border-white/10"
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 z-[1000] w-80 glass-strong text-white p-6 rounded-2xl border border-white/20 shadow-2xl space-y-4"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="heading-serif text-xl italic">Uploading Media</h4>
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">{uploadProgress.speed}</span>
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white">Uploading Media</h4>
+              <span className="text-[9px] font-mono text-emerald-400">{uploadProgress.speed}</span>
             </div>
             
-            <div className="mb-4">
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
-                <span className="text-gray-400">Progress</span>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[9px] font-mono text-white/40">
+                <span>{uploadProgress.fileName}</span>
                 <span>{uploadProgress.percentage}%</span>
               </div>
-              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div 
-                  className="h-full bg-primary"
+                  className="h-full bg-white rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${uploadProgress.percentage}%` }}
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center">
-                <ImageIcon className="w-5 h-5 text-gray-400" />
-              </div>
-              <div className="flex-grow min-w-0">
-                <p className="text-[11px] font-black uppercase tracking-tight truncate">{uploadProgress.fileName}</p>
-                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                  Photo {uploadProgress.current} of {uploadProgress.total}
-                </p>
-              </div>
-              {uploadProgress.percentage === 100 && (
-                <CheckCircle className="w-6 h-6 text-emerald-500" />
-              )}
+            <div className="text-[9px] font-bold uppercase tracking-widest text-white/40 flex justify-between items-center">
+              <span>Photo {uploadProgress.current} / {uploadProgress.total}</span>
+              {uploadProgress.percentage === 100 && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Edit Gallery Modal */}
+      {/* ── MODAL 4: EDIT GALLERY ── */}
       <AnimatePresence>
         {editingGallery && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[700] bg-black/80 backdrop-blur-2xl flex items-center justify-center p-6"
+            className="fixed inset-0 z-[700] bg-black/85 backdrop-blur-xl flex items-center justify-center p-6"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 30 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 30 }}
-              className="bg-white max-w-2xl w-full rounded-[3rem] p-10 sm:p-14 shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide"
+              exit={{ scale: 0.95, y: 20 }}
+              className="glass-strong max-w-lg w-full rounded-3xl p-8 border border-white/15 space-y-6 relative max-h-[90vh] overflow-y-auto"
             >
               <button
                 onClick={() => setEditingGallery(null)}
-                className="absolute top-8 right-8 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors text-gray-500 hover:text-black"
+                className="absolute top-6 right-6 p-2 rounded-full glass-subtle text-white/40 hover:text-white"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
-              <h3 className="heading-serif text-3xl mb-8 italic">Edit Gallery</h3>
-              <form onSubmit={handleUpdateGallery} className="space-y-6">
-                <div>
-                  <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Event Title</label>
+              <h3 className="heading-serif text-2xl font-bold text-white">Edit Gallery</h3>
+              
+              <form onSubmit={handleUpdateGallery} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40">Event Title</label>
                   <input
                     type="text"
-                    className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium focus:outline-none focus:border-white/40"
                     value={editingGallery.title}
                     onChange={e => setEditingGallery({ ...editingGallery, title: e.target.value })}
                     required
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Event Date</label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40">Event Date</label>
                     <input
                       type="date"
-                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium [color-scheme:dark]"
                       value={editingGallery.eventDate?.split('T')[0] || ''}
                       onChange={e => setEditingGallery({ ...editingGallery, eventDate: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Location</label>
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40">Location</label>
                     <input
                       type="text"
-                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium"
                       value={editingGallery.location}
                       onChange={e => setEditingGallery({ ...editingGallery, location: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">Access Password</label>
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40">Access Password</label>
                     <input
                       type="text"
-                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium"
                       value={editingGallery.password}
                       onChange={e => setEditingGallery({ ...editingGallery, password: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">
-                      Price (₹) <span className="normal-case font-medium text-gray-400 tracking-normal">— Optional</span>
-                    </label>
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-white/40">Price (₹)</label>
                     <input
                       type="number"
-                      className="w-full px-6 py-5 bg-gray-50 rounded-2xl font-bold border-none focus:ring-4 focus:ring-primary/20"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/12 rounded-xl text-white text-sm font-medium"
                       value={editingGallery.revenue || ''}
                       onChange={e => setEditingGallery({ ...editingGallery, revenue: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+
+                <div className="flex items-center gap-3 pt-1">
                   <input
                     type="checkbox"
                     id="editIsPublic"
-                    className="w-5 h-5 rounded"
+                    className="w-4 h-4 rounded border-white/20 bg-white/5"
                     checked={editingGallery.isPublic}
                     onChange={e => setEditingGallery({ ...editingGallery, isPublic: e.target.checked })}
                   />
-                  <label htmlFor="editIsPublic" className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-500">Make Gallery Public</label>
+                  <label htmlFor="editIsPublic" className="text-[10px] font-bold uppercase tracking-widest text-white/50">Public Gallery</label>
                 </div>
-                <div className="flex gap-4 pt-4">
+
+                <div className="flex gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setEditingGallery(null)}
-                    className="flex-1 btn-satyam-white !rounded-2xl !py-5 !text-sm"
+                    className="flex-1 py-3 glass-subtle border border-white/15 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 btn-quote !py-5 !text-sm disabled:opacity-50"
+                    className="flex-1 py-3 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/90"
                   >
-                    {isSubmitting ? <RefreshCw className="w-5 h-5 animate-spin mx-auto" /> : 'Save Changes'}
+                    {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : 'Save Changes'}
                   </button>
                 </div>
               </form>
@@ -1638,8 +1750,8 @@ const AdminPanel = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
 
+    </div>
   );
 };
 

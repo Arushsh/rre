@@ -1,23 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Instagram, Facebook, Youtube, ChevronDown, Camera, Video, Mic2, Music, Radio } from 'lucide-react';
+import { Menu, X, ChevronDown, Camera, Video, Mic2, Music, Radio, Sparkles, User, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Navbar = () => {
+const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showServices, setShowServices] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  
   const location = useLocation();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+    setMobileServicesOpen(false);
+    setShowServices(false);
+  }, [location.pathname]);
+
+  // Lock body scroll on mobile menu open & handle Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  // Outside click handler for mobile menu
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node) && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Service Links
   const serviceLinks = [
-    { name: 'Photography', href: '/photography', icon: Camera, desc: 'Professional Photoshoots' },
+    { name: 'Photography', href: '/photography', icon: Camera, desc: 'Editorial & Event Captures' },
     { name: 'Videography', href: '/videography', icon: Video, desc: 'Cinematic Films & BTS' },
     { name: 'Audio Recording', href: '/audio-recording', icon: Mic2, desc: 'Studio Vocal Sessions' },
     { name: 'Music Production', href: '/music-production', icon: Music, desc: 'Beats & Arrangement' },
@@ -25,140 +74,266 @@ const Navbar = () => {
   ];
 
   const mainLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
+    { name: 'Work', href: '/portfolio' },
     { name: 'Gallery', href: '/gallery' },
-    { name: 'Contact', href: '/booking' },
+    { name: 'Talent Hunt', href: '/talent-hunt' },
+    { name: 'AI Hub', href: '/ai-hub' },
+    { name: 'About', href: '/about' },
   ];
 
+  const isServiceActive = serviceLinks.some((s) => s.href === location.pathname);
+
   return (
-    <nav className={`fixed w-full z-[100] transition-all duration-700 ${isScrolled ? 'bg-white/90 backdrop-blur-xl py-4 shadow-sm' : 'bg-transparent py-8'}`}>
-      <div className="satyam-container flex justify-between items-center">
-        {/* Minimalist Logo */}
-        <Link to="/" className="flex flex-col items-center group">
-          <span className="text-2xl font-light tracking-[0.5em] text-black leading-none mb-1">RAJATRAJ</span>
-          <span className="text-[0.6rem] font-bold tracking-[0.4em] text-neutral-400 group-hover:text-black transition-colors uppercase ml-2">ENTERTAINMENT</span>
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center space-x-10">
-          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'text-black' : ''}`}>Home</Link>
-          <Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'text-black' : ''}`}>About</Link>
-          
-          {/* Services Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setShowServices(true)}
-            onMouseLeave={() => setShowServices(false)}
-          >
-            <button className={`nav-link flex items-center gap-1 ${serviceLinks.some(s => s.href === location.pathname) ? 'text-black' : ''}`}>
-              Services <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showServices ? 'rotate-180' : ''}`} />
-            </button>
-            
-            <AnimatePresence>
-              {showServices && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 pt-6"
-                >
-                  <div className="bg-white shadow-[0_30px_100px_rgba(0,0,0,0.1)] border border-neutral-50 p-6 w-[450px] grid grid-cols-1 gap-2">
-                    <div className="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-300 mb-4 px-4">Our Creative Services</div>
-                    {serviceLinks.map((service) => (
-                      <Link
-                        key={service.name}
-                        to={service.href}
-                        className="group flex items-center gap-6 p-4 hover:bg-neutral-50 transition-all"
-                        onClick={() => setShowServices(false)}
-                      >
-                        <div className="w-12 h-12 bg-neutral-50 flex items-center justify-center transition-all group-hover:bg-black group-hover:text-white">
-                          <service.icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black mb-1">{service.name}</p>
-                          <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-widest">{service.desc}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <Link to="/gallery" className={`nav-link ${location.pathname === '/gallery' ? 'text-black' : ''}`}>Gallery</Link>
-          <Link to="/dashboard" className={`nav-link ${location.pathname === '/dashboard' ? 'text-black' : ''}`}>My Portal</Link>
-          
-          <Link to="/booking" className="btn-quote !px-6 !py-2.5 !text-[14px] ml-4">
-            Book Now
+    <>
+      {/* ── TOP STICKY HEADER ── */}
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'py-3.5 bg-[#050708]/90 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
+            : 'py-6 bg-transparent'
+        }`}
+      >
+        <div className="satyam-container flex justify-between items-center">
+          {/* Minimalist Editorial Logo */}
+          <Link to="/" className="flex flex-col group py-1" aria-label="RRE Home">
+            <span className="text-xl md:text-2xl font-black tracking-[0.35em] text-white leading-none group-hover:text-[#00E5FF] transition-colors">
+              RAJATRAJ
+            </span>
+            <span className="text-[0.55rem] font-extrabold tracking-[0.45em] text-white/50 group-hover:text-white transition-colors uppercase mt-0.5">
+              ENTERTAINMENT
+            </span>
           </Link>
-          
-          <div className="flex items-center space-x-6 border-l border-neutral-100 pl-8 ml-4">
-            <a href="https://www.instagram.com/kundan_rajat_raj?utm_source=qr&igsh=MXYzamZ0NXpsdDZqYQ==" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-black transition-all hover:scale-110"><Instagram className="w-4 h-4" /></a>
-            <a href="#" className="text-neutral-400 hover:text-black transition-all hover:scale-110"><Facebook className="w-4 h-4" /></a>
-          </div>
-        </div>
 
-        {/* Mobile Toggle */}
-        <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden text-black p-2">
-          {isOpen ? <X className="w-8 h-8 stroke-[1px]" /> : <Menu className="w-8 h-8 stroke-[1px]" />}
-        </button>
-      </div>
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8" aria-label="Main Navigation">
+            <Link
+              to="/"
+              className={`nav-link ${location.pathname === '/' ? 'text-white active' : ''}`}
+            >
+              Home
+            </Link>
 
-      {/* Full Screen Mobile Menu */}
-      <div className={`fixed inset-0 bg-white z-[150] transition-all duration-700 lg:hidden ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-        <div className="absolute top-8 right-8">
-          <button onClick={() => setIsOpen(false)} className="text-black p-2 hover:rotate-90 transition-transform duration-300">
-            <X className="w-10 h-10 stroke-[1px]" />
+            {/* Services Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setShowServices(true)}
+              onMouseLeave={() => setShowServices(false)}
+            >
+              <button
+                className={`nav-link flex items-center gap-1.5 ${isServiceActive ? 'text-white active' : ''}`}
+                aria-expanded={showServices}
+                aria-haspopup="true"
+              >
+                Services
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                    showServices ? 'rotate-180 text-white' : 'text-white/60'
+                  }`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {showServices && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-[420px]"
+                  >
+                    <div className="glass-strong rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-white/15">
+                      <div className="text-[9px] font-extrabold uppercase tracking-[0.3em] text-[#00E5FF] mb-3 px-3">
+                        Creative Services
+                      </div>
+                      <div className="grid grid-cols-1 gap-1">
+                        {serviceLinks.map((service) => {
+                          const Icon = service.icon;
+                          return (
+                            <Link
+                              key={service.name}
+                              to={service.href}
+                              className="group flex items-center gap-4 p-3 rounded-xl hover:bg-white/10 transition-all duration-300"
+                              onClick={() => setShowServices(false)}
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/70 group-hover:bg-[#00E5FF] group-hover:text-black transition-all shrink-0">
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-white group-hover:text-[#00E5FF] transition-colors">
+                                  {service.name}
+                                </p>
+                                <p className="text-[9px] text-white/50 font-medium">
+                                  {service.desc}
+                                </p>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {mainLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                className={`nav-link ${location.pathname === link.href ? 'text-white active' : ''}`}
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            <Link
+              to="/dashboard"
+              className={`nav-link ${location.pathname === '/dashboard' ? 'text-white active' : ''}`}
+            >
+              My Portal
+            </Link>
+
+            {/* Book Now Primary Button */}
+            <Link to="/booking" className="btn-vantage-primary !py-2.5 !px-6 !text-[11px] ml-2">
+              Book Now
+            </Link>
+          </nav>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="lg:hidden text-white p-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-all focus:outline-none"
+            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isOpen}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
-        <div className="h-full flex flex-col justify-center items-center space-y-6 px-10 text-center overflow-y-auto pt-20">
-          <Link to="/" className="text-3xl font-light tracking-[0.3em] uppercase" onClick={() => setIsOpen(false)}>Home</Link>
-          <Link to="/about" className="text-3xl font-light tracking-[0.3em] uppercase" onClick={() => setIsOpen(false)}>About</Link>
-          
-          <div className="w-full max-w-xs">
-            <button 
-              onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-              className="w-full flex justify-center items-center gap-4 text-3xl font-light tracking-[0.3em] uppercase py-4"
+      </header>
+
+      {/* ── SEPARATE FULL-SCREEN MOBILE DRAWER (OUTSIDE HEADER TO PREVENT CLIPPING) ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-[999] lg:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setIsOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+            />
+
+            {/* Slide-out Drawer */}
+            <motion.div
+              ref={mobileMenuRef}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-0 right-0 w-full max-w-sm h-full h-[100dvh] bg-[#050708] border-l border-white/15 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto z-10 shadow-2xl"
             >
-              Services <ChevronDown className={`w-6 h-6 transition-transform ${mobileServicesOpen ? 'rotate-180' : ''}`} />
-            </button>
-            
-            <AnimatePresence>
-              {mobileServicesOpen && (
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden space-y-4 pt-4 border-t border-neutral-50"
-                >
-                  {serviceLinks.map((service) => (
+              <div>
+                {/* Header in Drawer */}
+                <div className="flex justify-between items-center pb-6 border-b border-white/10">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-black tracking-[0.3em] text-white">RAJATRAJ</span>
+                    <span className="text-[0.5rem] font-bold tracking-[0.4em] text-white/50 uppercase">ENTERTAINMENT</span>
+                  </div>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 rounded-xl border border-white/15 bg-white/5 text-white hover:bg-white/10 transition-all"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Nav Links */}
+                <div className="py-6 space-y-3">
+                  <Link
+                    to="/"
+                    className="block text-base font-bold uppercase tracking-[0.2em] text-white/90 hover:text-[#00E5FF] transition-colors py-1.5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Home
+                  </Link>
+
+                  {/* Accordion Services for Mobile */}
+                  <div className="py-1">
+                    <button
+                      onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
+                      className="w-full flex justify-between items-center text-base font-bold uppercase tracking-[0.2em] text-white/90 hover:text-[#00E5FF] transition-colors py-1.5"
+                    >
+                      <span>Services</span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          mobileServicesOpen ? 'rotate-180 text-[#00E5FF]' : 'text-white/40'
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {mobileServicesOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden pl-4 space-y-2.5 pt-2 border-l border-white/10 ml-2"
+                        >
+                          {serviceLinks.map((service) => (
+                            <Link
+                              key={service.name}
+                              to={service.href}
+                              className="block text-xs font-bold uppercase tracking-[0.2em] text-white/70 hover:text-white transition-colors py-1"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              {service.name}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {mainLinks.map((link) => (
                     <Link
-                      key={service.name}
-                      to={service.href}
-                      className="block text-sm font-black uppercase tracking-[0.2em] text-neutral-400 py-2"
+                      key={link.name}
+                      to={link.href}
+                      className="block text-base font-bold uppercase tracking-[0.2em] text-white/90 hover:text-[#00E5FF] transition-colors py-1.5"
                       onClick={() => setIsOpen(false)}
                     >
-                      {service.name}
+                      {link.name}
                     </Link>
                   ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
-          <Link to="/gallery" className="text-3xl font-light tracking-[0.3em] uppercase" onClick={() => setIsOpen(false)}>Gallery</Link>
-          <Link to="/booking" className="text-3xl font-light tracking-[0.3em] uppercase" onClick={() => setIsOpen(false)}>Contact</Link>
-          
-          <div className="flex space-x-8 pt-10">
-            <Instagram className="w-6 h-6" />
-            <Facebook className="w-6 h-6" />
-            <Youtube className="w-6 h-6" />
+                  <Link
+                    to="/dashboard"
+                    className="block text-base font-bold uppercase tracking-[0.2em] text-white/90 hover:text-[#00E5FF] transition-colors py-1.5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    My Portal
+                  </Link>
+                </div>
+              </div>
+
+              {/* Bottom CTA */}
+              <div className="pt-6 border-t border-white/10 space-y-3">
+                <Link
+                  to="/booking"
+                  className="btn-vantage-primary w-full py-3.5 text-center block text-xs"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Book Now <ArrowRight className="inline-block w-3.5 h-3.5 ml-1.5" />
+                </Link>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
-    </nav>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

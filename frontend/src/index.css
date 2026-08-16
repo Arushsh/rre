@@ -1,25 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #000000;
+  color: #ffffff;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #000000;
+  color: #ffffff;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 @layer components {
-  .satyam-container {
+  /* Container system */
+  .satyam-container, .rre-container {
     @apply max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12;
   }
   
+  /* Scrollbar Utilities */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -28,82 +35,147 @@ body {
     display: none;
   }
 
-  .btn-quote {
-    @apply bg-[#0f172a] text-white px-8 py-4 text-[15px] font-bold transition-all duration-300 hover:bg-black hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-xl border-2 border-transparent;
+  /* Core Glass Design System (Section 11 Spec) */
+  .glass-base, .glass-default {
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: linear-gradient(145deg, rgba(24, 22, 20, 0.80), rgba(5, 12, 14, 0.86));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.44), 0 0 0 3px rgba(255, 255, 255, 0.035) inset, 0 0 0 1px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(14px) saturate(108%);
+    -webkit-backdrop-filter: blur(14px) saturate(108%);
   }
 
-  .btn-satyam-black {
-    @apply bg-black text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-800 hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.4)] active:scale-95 inline-flex items-center justify-center rounded-none border-2 border-black;
+  .glass-subtle {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(145deg, rgba(16, 23, 25, 0.50), rgba(8, 12, 14, 0.60));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .glass-strong {
+    border: 1px solid rgba(255, 255, 255, 0.21);
+    background: linear-gradient(145deg, rgba(30, 28, 25, 0.90), rgba(10, 17, 20, 0.95));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+  }
+
+  .glass-floating {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: linear-gradient(160deg, rgba(20, 24, 28, 0.85), rgba(5, 7, 8, 0.92));
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* Vantage Typography System */
+  .display-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    color: #FFFFFF;
+  }
+
+  .display-hero {
+    font-size: clamp(2.75rem, 7vw + 1rem, 7.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+  }
+
+  .editorial-subhead {
+    color: rgba(226, 229, 228, 0.84);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* Vantage Button System (Section 12 Spec) */
+  .btn-vantage-primary, .btn-primary {
+    @apply bg-white text-[#101010] px-8 py-4 text-[12px] font-bold uppercase tracking-[0.2em] transition-all duration-300 hover:bg-neutral-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,255,255,0.2)] active:scale-[0.98] inline-flex items-center justify-center rounded-xl border border-white;
+  }
+
+  .btn-vantage-glass, .btn-satyam-glass {
+    @apply glass-base text-white px-8 py-4 text-[12px] font-bold uppercase tracking-[0.2em] transition-all duration-300 hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 active:scale-[0.98] inline-flex items-center justify-center rounded-xl;
+  }
+
+  .btn-vantage-ghost, .btn-satyam-outline {
+    @apply bg-transparent text-white px-8 py-4 text-[12px] font-bold uppercase tracking-[0.2em] transition-all duration-300 border border-white/15 hover:border-white/40 hover:bg-white/5 hover:-translate-y-0.5 active:scale-[0.98] inline-flex items-center justify-center rounded-xl;
+  }
+
+  .btn-vantage-secondary {
+    @apply bg-neutral-900 text-white px-8 py-4 text-[12px] font-bold uppercase tracking-[0.2em] transition-all duration-300 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800 hover:-translate-y-0.5 active:scale-[0.98] inline-flex items-center justify-center rounded-xl;
+  }
+
+  .btn-quote, .btn-satyam-black {
+    @apply btn-vantage-primary;
   }
 
   .btn-satyam-white {
-    @apply bg-white text-black px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-50 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] active:scale-95 inline-flex items-center justify-center border-2 border-black rounded-none;
+    @apply btn-vantage-primary;
   }
 
-  .btn-satyam-outline {
-    @apply bg-transparent text-black px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 border-2 border-neutral-200 hover:border-black hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-none;
-  }
-
-  .btn-satyam-glass {
-    @apply bg-white/10 backdrop-blur-md text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 border-2 border-white/30 hover:bg-white/20 hover:-translate-y-1 active:scale-95 inline-flex items-center justify-center rounded-none shadow-xl;
-  }
-
-  .btn-primary {
-    @apply bg-black text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:bg-neutral-800 hover:-translate-y-1 hover:shadow-2xl active:scale-95 inline-flex items-center justify-center rounded-full;
-  }
-
+  /* Navigation Link Style */
   .nav-link {
-    @apply text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-all duration-300 relative;
+    @apply text-[11px] font-bold uppercase tracking-[0.25em] text-white/70 hover:text-white transition-all duration-300 relative py-1;
   }
 
   .nav-link::after {
     content: '';
-    @apply absolute -bottom-1 left-0 w-0 h-[2px] bg-black transition-all duration-300;
+    @apply absolute -bottom-1 left-0 w-0 h-[2px] bg-white transition-all duration-300;
   }
 
-  .nav-link:hover::after {
+  .nav-link:hover::after, .nav-link.active::after {
     @apply w-full;
   }
 
   .heading-serif {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 }
 
 .animate-slow-zoom {
-  animation: slowZoom 30s infinite alternate;
+  animation: slowZoom 30s infinite alternate cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slowZoom {
   from { transform: scale(1); }
-  to { transform: scale(1.2); }
+  to { transform: scale(1.15); }
 }
 
-/* Custom Scrollbar */
+/* Dark Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #050708;
 }
 ::-webkit-scrollbar-thumb {
-  background: #000;
+  background: #20262b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #353d45;
 }
 
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  background-color: #000000;
 }
 
-/* GPU acceleration for animated cards */
-.group {
+/* GPU acceleration for animated elements */
+.group, .glass-base, .glass-strong, .glass-floating {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Smooth image rendering */
-img {
-  image-rendering: -webkit-optimize-contrast;
+/* Focus visible accessibility */
+*:focus-visible {
+  outline: 2px solid #00E5FF;
+  outline-offset: 4px;
 }
 
 /* Reduced motion support */
@@ -118,3 +190,4 @@ img {
     animation-duration: 0.01ms !important;
   }
 }
+

@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import ScrollToTop from './components/ScrollToTop'
+import PageTransition from './components/ui/PageTransition'
 import Home from './pages/Home'
 import TalentHuntPage from './pages/TalentHuntPage'
 import EventsPage from './pages/EventsPage'
@@ -26,30 +27,32 @@ import Footer from './components/Footer'
 function App() {
   return (
     <Router>
-      <div className="bg-secondary min-h-screen text-dark flex flex-col">
+      <div className="bg-[#000000] min-h-screen text-white flex flex-col selection:bg-[#00E5FF] selection:text-black font-sans">
         <ScrollToTop />
         <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/talent-hunt" element={<TalentHuntPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/ai-hub" element={<AIHubPage />} />
-            <Route path="/gallery" element={<GalleryPortal />} />
-            <Route path="/gallery/:slug" element={<GalleryView />} />
-            <Route path="/onboarding/:slug" element={<ClientOnboarding />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/dashboard" element={<ClientDashboard />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/photography" element={<Photography />} />
-            <Route path="/videography" element={<Videography />} />
-            <Route path="/audio-recording" element={<AudioRecording />} />
-            <Route path="/music-production" element={<MusicProduction />} />
-            <Route path="/live-streaming" element={<LiveStreaming />} />
-            <Route path="/portfolio" element={<PortfolioPage />} />
-            <Route path="/booking" element={<BookingPage />} />
-          </Routes>
+        <main className="flex-grow flex flex-col">
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/talent-hunt" element={<TalentHuntPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/ai-hub" element={<AIHubPage />} />
+              <Route path="/gallery" element={<GalleryPortal />} />
+              <Route path="/gallery/:slug" element={<GalleryView />} />
+              <Route path="/onboarding/:slug" element={<ClientOnboarding />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/dashboard" element={<ClientDashboard />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/photography" element={<Photography />} />
+              <Route path="/videography" element={<Videography />} />
+              <Route path="/audio-recording" element={<AudioRecording />} />
+              <Route path="/music-production" element={<MusicProduction />} />
+              <Route path="/live-streaming" element={<LiveStreaming />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/booking" element={<BookingPage />} />
+            </Routes>
+          </PageTransition>
         </main>
         <AIAssistant />
         <Footer />
@@ -59,3 +62,4 @@ function App() {
 }
 
 export default App
+

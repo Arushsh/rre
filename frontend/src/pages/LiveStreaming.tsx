@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Radio, Video, Users, CheckCircle, ArrowRight, Globe, Zap, Shield, Monitor, Loader2 } from 'lucide-react';
+import { Radio, Globe, Zap, Shield, Monitor, CheckCircle, ArrowRight, Wifi, Users, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config/api';
+import GlassCard from '../components/ui/GlassCard';
+import SectionHeader from '../components/ui/SectionHeader';
+import Button from '../components/ui/Button';
 
 const LiveStreaming = () => {
   const [services, setServices] = useState<any[]>([]);
@@ -27,155 +30,232 @@ const LiveStreaming = () => {
       description: "Share your special moments with loved ones across the globe in real-time high definition.",
       price: "Starts from ₹15,000",
       features: ["Multi-cam Setup", "Private Landing Page", "Zero Lag Stream", "Full Recording Provided"]
+    },
+    {
+      title: "Corporate Broadcast",
+      description: "Professional live streaming for conferences, product launches, and town halls.",
+      price: "Starts from ₹20,000",
+      features: ["Branded Overlays", "Q&A Integration", "Recorded Archive", "Platform Distribution"]
     }
   ];
 
   const displayServices = services.length > 0 ? services : (loading ? [] : fallbackServices);
 
+  const techSpecs = [
+    { icon: Globe, title: "Global Reach", desc: "Streams optimized for viewers in 150+ countries with adaptive bitrate delivery." },
+    { icon: Shield, title: "Rock Solid", desc: "Dual-internet bonded backup systems ensuring your stream never drops, no matter what." },
+    { icon: Zap, title: "Zero Lag", desc: "Sub-second latency technology enabling real-time interaction with your live audience." },
+    { icon: Wifi, title: "Bonded Internet", desc: "Combining multiple 4G/5G/Fiber lines for an unbreakable, fault-tolerant connection." },
+  ];
+
   return (
-    <div className="bg-white min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center overflow-hidden bg-black pt-20">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1600&q=80" 
-            className="w-full h-full object-cover opacity-40 animate-slow-zoom" 
-            alt="Live Streaming Hero" 
+    <div className="bg-[#000000] text-white selection:bg-[#00E5FF] selection:text-black">
+
+      {/* HERO SECTION */}
+      <section className="relative min-h-[85vh] flex flex-col justify-end overflow-hidden pt-28 pb-16 md:pb-24">
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          <img
+            src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1920&q=85"
+            alt="Live Streaming Hero"
+            className="w-full h-full object-cover opacity-40 animate-slow-zoom"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
         </div>
-        
-        <div className="satyam-container relative z-10 text-white">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
+
+        {/* LIVE INDICATOR */}
+        <div className="absolute top-32 right-8 md:right-16 z-20">
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-red-600/90 backdrop-blur-sm border border-red-500/50 text-[11px] font-black uppercase tracking-[0.2em]">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <span>Live Ready</span>
+          </div>
+        </div>
+
+        <div className="satyam-container relative z-10 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-3xl space-y-6"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="h-[1px] w-12 bg-white/30" />
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/70">Global Broadcast</span>
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-subtle text-[10px] font-bold uppercase tracking-[0.3em] text-[#00E5FF]">
+              <Radio className="w-3.5 h-3.5" />
+              <span>Global Live Broadcast</span>
             </div>
-            <h1 className="heading-serif text-5xl md:text-7xl lg:text-8xl mb-8 italic">Broadcast <br/>Without Limits.</h1>
-            <p className="text-lg md:text-xl text-white/60 font-medium mb-12 leading-relaxed max-w-xl">
-              High-definition, low-latency live streaming solutions for any event. Connect with your audience anywhere in the world.
+
+            <h1 className="display-hero text-white tracking-tighter">
+              BROADCAST <br />
+              <span className="italic font-normal text-white/80">WITHOUT LIMITS.</span>
+            </h1>
+
+            <p className="editorial-subhead text-base sm:text-xl text-white/70 max-w-xl font-normal leading-relaxed">
+              High-definition, low-latency live streaming solutions for any event. Connect your audience anywhere in the world with broadcast-grade quality.
             </p>
-            <div className="flex flex-wrap gap-6">
-              <Link to="/booking" className="btn-satyam-glass !bg-primary !border-primary">
-                Go Live Now <Radio className="ml-3 w-4 h-4" />
+
+            <div className="flex flex-wrap items-center gap-5 pt-2">
+              <Link to="/booking">
+                <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Go Live Now
+                </Button>
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats/Features */}
-      <section className="py-24 bg-gray-50">
-        <div className="satyam-container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              { icon: Globe, title: "Global Reach", desc: "Our streams are optimized for viewers in over 150 countries with adaptive bitrate." },
-              { icon: Shield, title: "Rock Solid", desc: "Dual-internet backup systems ensure your stream never drops, no matter what." },
-              { icon: Zap, title: "Zero Lag", desc: "Low-latency technology that allows for real-time interaction with your audience." }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-                className="bg-white p-10 rounded-[3rem] border border-neutral-50 shadow-sm hover:shadow-xl transition-all"
-              >
-                <feature.icon className="w-10 h-10 text-black mb-6" />
-                <h3 className="text-xl font-black mb-4 uppercase tracking-tight">{feature.title}</h3>
-                <p className="text-neutral-400 text-sm font-medium leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* TECH CAPABILITIES GRID */}
+      <section className="py-28 bg-[#000000] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <SectionHeader
+            index="01"
+            category="BROADCAST TECHNOLOGY"
+            title="PRO-GRADE INFRASTRUCTURE."
+            description="We deploy the same multi-redundant systems used by major broadcast networks to guarantee your stream."
+          />
 
-      {/* Services Grid */}
-      <section className="py-32 bg-white">
-        <div className="satyam-container">
-          <div className="text-center mb-24">
-            <h2 className="heading-serif text-5xl mb-6 italic">Broadcast Solutions</h2>
-            <p className="text-neutral-400 font-medium uppercase tracking-[0.2em] text-[10px]">Seamlessly connecting worlds</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {loading ? (
-              <div className="col-span-full flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
-            ) : displayServices.map((service, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="group p-12 bg-gray-50 rounded-[4rem] border border-neutral-100 hover:border-black transition-all duration-500"
-              >
-                <div className="flex justify-between items-start mb-8">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors shadow-sm">
-                    <Monitor className="w-8 h-8" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Starts at</p>
-                    <p className="text-xl font-black">{service.price}</p>
-                  </div>
-                </div>
-                <h3 className="text-3xl font-black mb-4">{service.title}</h3>
-                <p className="text-neutral-500 mb-8 font-medium leading-relaxed">{service.description}</p>
-                <div className="grid grid-cols-2 gap-4 mb-10">
-                  {service.features.map((f: any, j: number) => (
-                    <div key={j} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                      <CheckCircle className="w-3 h-3 text-black" /> {f}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {techSpecs.map((spec, i) => {
+              const Icon = spec.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.6 }}
+                >
+                  <GlassCard variant="subtle" className="h-full space-y-5">
+                    <div className="w-12 h-12 rounded-xl bg-[#00E5FF]/10 border border-[#00E5FF]/30 flex items-center justify-center text-[#00E5FF]">
+                      <Icon className="w-6 h-6" />
                     </div>
-                  ))}
-                </div>
-                <Link to="/booking" className="btn-satyam-black w-full !rounded-2xl group-hover:bg-primary group-hover:border-primary transition-colors">
-                  Enquire Now <ArrowRight className="ml-3 w-4 h-4" />
-                </Link>
-              </motion.div>
-            ))}
+                    <h3 className="heading-serif text-xl font-bold text-white">{spec.title}</h3>
+                    <p className="editorial-subhead text-sm text-white/60 leading-relaxed">{spec.desc}</p>
+                  </GlassCard>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Technology Section */}
-      <section className="py-32 bg-black text-white">
-        <div className="satyam-container">
-          <div className="flex flex-col lg:flex-row gap-20 items-center">
-            <div className="flex-1 space-y-8">
-              <h2 className="heading-serif text-6xl italic">Pro-Grade <br/>Broadcast Tech</h2>
-              <p className="text-neutral-400 font-medium leading-relaxed">
-                We use the same technology as major news networks to ensure your live stream is of the highest possible quality. From multi-cam switchers to bonded cellular internet, we've got it covered.
+      {/* BROADCAST PACKAGES */}
+      <section className="py-28 bg-[#050708] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <SectionHeader
+            index="02"
+            category="BROADCAST SOLUTIONS"
+            title="EVERY EVENT. LIVE."
+            description="From intimate weddings to large corporate conferences — we stream it all flawlessly."
+          />
+
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-[#00E5FF]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {displayServices.map((service, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <GlassCard variant="strong" className="space-y-6">
+                    <div className="flex justify-between items-start flex-wrap gap-4 border-b border-white/10 pb-4">
+                      <div>
+                        <h3 className="heading-serif text-2xl font-bold text-white">{service.title}</h3>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">RRE Broadcast</span>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#00E5FF] px-4 py-2 rounded-full bg-[#00E5FF]/10 border border-[#00E5FF]/30">
+                        {service.price}
+                      </span>
+                    </div>
+
+                    <p className="editorial-subhead text-sm text-white/70 leading-relaxed">
+                      {service.description}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      {service.features.map((f: any, j: number) => (
+                        <div key={j} className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
+                          <CheckCircle className="w-3.5 h-3.5 text-[#00E5FF] shrink-0" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4">
+                      <Link to="/booking">
+                        <Button variant="glass" size="md" className="w-full">
+                          Enquire Now →
+                        </Button>
+                      </Link>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CONTROL ROOM SHOWCASE */}
+      <section className="py-28 bg-[#000000] border-t border-white/10 relative overflow-hidden">
+        <div className="satyam-container relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+
+            <div className="lg:col-span-6 space-y-8">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#00E5FF] mb-3 block">Mission Control</span>
+                <h2 className="display-title text-4xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+                  MULTI-CAMERA <br />
+                  <span className="italic font-normal text-white/80">BROADCAST TECH.</span>
+                </h2>
+              </div>
+              <p className="editorial-subhead text-base text-white/70 font-normal leading-relaxed">
+                We deploy broadcast-grade hardware including vMix / OBS production suites, multi-camera switching, and bonded cellular internet — the same tech trusted by major news networks.
               </p>
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[
-                  { title: "Bonded Internet", desc: "Combining multiple 4G/5G/Fiber lines for unbreakable connectivity." },
-                  { title: "vMix/OBS Setup", desc: "Professional production software for branded overlays and graphics." }
-                ].map((item, i) => (
-                  <div key={i} className="space-y-2">
-                    <h4 className="font-black uppercase tracking-widest text-primary text-xs">{item.title}</h4>
-                    <p className="text-sm text-neutral-500 font-medium">{item.desc}</p>
-                  </div>
-                ))}
+                  { icon: Monitor, title: "vMix / OBS Setup", desc: "Professional production software with branded overlays and real-time graphics." },
+                  { icon: Users, title: "Multi-Cam Control", desc: "Seamless switching between up to 6 camera angles for cinema-level production." },
+                ].map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={i} className="space-y-2">
+                      <div className="flex items-center gap-2 text-[#00E5FF]">
+                        <Icon className="w-4 h-4" />
+                        <h4 className="text-xs font-black uppercase tracking-widest">{item.title}</h4>
+                      </div>
+                      <p className="text-sm text-white/50 leading-relaxed">{item.desc}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="flex-1 relative">
-              <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl relative group">
-                <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80" className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" alt="Live Tech" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex items-center gap-3 bg-red-600 px-6 py-3 rounded-full animate-pulse">
-                    <div className="w-2 h-2 bg-white rounded-full" />
+
+            <div className="lg:col-span-6 relative">
+              <div className="aspect-video rounded-3xl overflow-hidden glass-strong border border-white/20 shadow-2xl relative group">
+                <img
+                  src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1200&q=80"
+                  alt="Live Broadcast Control Room"
+                  className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-red-600/90 backdrop-blur-sm border border-red-500/40 animate-pulse">
+                    <span className="w-2 h-2 bg-white rounded-full" />
                     <span className="text-xs font-black uppercase tracking-[0.2em]">Live Stream Active</span>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
+
     </div>
   );
 };
