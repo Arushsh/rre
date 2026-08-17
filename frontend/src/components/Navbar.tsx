@@ -83,6 +83,11 @@ const Navbar: React.FC = () => {
 
   const isServiceActive = serviceLinks.some((s) => s.href === location.pathname);
 
+  // Do not render public Navbar on Admin pages (Admin has its own dedicated control bar)
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       {/* ── TOP STICKY HEADER ── */}

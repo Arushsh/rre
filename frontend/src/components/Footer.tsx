@@ -1,11 +1,17 @@
 import React from 'react';
 import { Facebook, Instagram, Youtube, Twitter, Mail, MapPin, Phone, ArrowUp, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const location = useLocation();
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <footer id="contact" className="bg-[#050708] border-t border-white/10 pt-20 pb-12 relative overflow-hidden text-white">

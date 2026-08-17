@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, Bot, User, AlertCircle, RefreshCw } from 'lucide-react';
 import { API_URL } from '../config/api';
@@ -19,7 +20,12 @@ const TypingDots = () => (
 );
 
 const AIAssistant = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
